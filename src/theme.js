@@ -1,0 +1,33 @@
+export default theme = {
+  colors: {
+    background: 'rgba(10, 10, 10, 0.95)',
+    backgroundSolid: '#1b1b1b',
+    listItem: '#262626',
+    overlay: 'rgba(0,0,0,0.4)',
+    underlay: 'rgba(0,0,0,0.9)',
+    accent: '#61DBFB',
+    secondaryAccent: '#85EA85',
+    secondary: '#555',
+    textWhite: '#f1f1f1',
+    error: 'rgba(255, 0, 0, 0.4)',
+  },
+  colorsLight: {
+    background: 'rgba(255, 255,255, 0.95)',
+    backgroundSolid: '#f1f1f1',
+    listItem: '#f9f9f9',
+    overlay: 'rgba(250,250,250,0.5)',
+    underlay: 'rgba(250,250,250,0.7)',
+    accent: '#61DBFB',
+    secondaryAccent: '#85EA85',
+    secondary: '#555',
+    textWhite: '#000',
+    error: 'rgba(255, 0, 0, 0.4)',
+  },
+  radiuses: {
+    xs: '10px',
+    sm: '20px',
+    md: '30px',
+    lg: '40px',
+    full: '999px',
+  },
+}

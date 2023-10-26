@@ -1,20 +1,19 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import React from 'react'
+
+import { MapProvider } from './src/contexts/MapContext'
+import { DarkModeProvider } from './src/contexts/DarkModeContext'
+import { DbProvider } from './src/contexts/DbContext'
+
+import MainNav from './src/ui/MainNav'
 
 export default function App() {
   return (
-    <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
-  );
+    <DarkModeProvider>
+      <MapProvider>
+        <DbProvider>
+          <MainNav />
+        </DbProvider>
+      </MapProvider>
+    </DarkModeProvider>
+  )
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
