@@ -2,8 +2,6 @@ import React, { useEffect, createRef, useState } from 'react'
 import { View, Dimensions, Keyboard } from 'react-native'
 import styled from 'styled-components/native'
 
-import Modal from 'react-native-modal'
-
 // Maps
 import MapView, { AnimatedRegion } from 'react-native-maps'
 
@@ -25,6 +23,7 @@ import PointerArrow from '../../ui/PointerArrow'
 import Compass from '../../ui/Compass'
 import Search from '../../ui/Search'
 import ActionForm from './ActionForm'
+import useGeoCoding from './useGeoCoding'
 
 const MapContaioner = styled(View)`
   flex: 1;
@@ -50,8 +49,8 @@ export default function MapScreen({ navigation }) {
     setLocationName,
     setCurrentLocation,
     currentLocation,
-    markers,
-    setMarkers,
+    marker,
+    setMarker,
     pin,
     animatedRegion,
     setAnimatedRegion,
@@ -66,6 +65,9 @@ export default function MapScreen({ navigation }) {
     search,
     setSearch,
     searchPinLocation,
+    inputIsFocused,
+    setInputIsFocused,
+    searchIsGeoCoords,
   } = useMapContext()
 
   const {
@@ -90,9 +92,7 @@ export default function MapScreen({ navigation }) {
   const [isMapDragging, setIsMapDragging] = useState(false)
   const [parked, setParked] = useState(!parkingLocation)
   const [errorInsert, setErrorInsert] = useState(null)
-  const [inputIsFocused, setInputIsFocused] = useState(false)
   const [savedLocation, setSavedLocation] = useState(null)
-
 
   useEffect(() => {
     createTable()
@@ -104,13 +104,12 @@ export default function MapScreen({ navigation }) {
   }, [])
 
   useEffect(() => {
-    setInputIsFocused(true)
     if (isModalVisible) {
       setTimeout(() => {
         inputRef.current.focus()
       }, 50)
     }
-  }, [isModalVisible, setInputIsFocused])
+  }, [isModalVisible])
 
   useEffect(() => {
     if (locationName) setErrorInsert(null)
@@ -142,50 +141,52 @@ export default function MapScreen({ navigation }) {
     setIsMapDragging(true)
   }
 
+  const handleOpenModal = () => {
+    setModalVisible(true)
+  }
+
+  const handleCloseModal = () => {
+    setErrorInsert(null)
+    setCurrentLocation(null)
+    setSavedLocation(null)
+    setInputIsFocused(false)
+    setModalVisible(false)
+    setMarker(null)
+  }
+
   const handleSave = () => {
     if (!currentLocation && !search) return
     const [longitude, latitude] = currentLocation || search.trim(' ').split(',')
     if (locationName === '' || locationType === '')
-      return setErrorInsert('Name the location before you save it!')
+      return setErrorInsert('No name provided!')
+    console.log(
+      'Data to be inserted',
+      locationName,
+      locationType,
+      longitude,
+      latitude
+    )
     insertData(locationName, locationType, longitude, latitude)
     setLocationName('')
     setLocationType('Location')
-    setCurrentLocation(null)
-    setSavedLocation(null)
-    setSearch(null)
-    setErrorInsert(null)
     fetchData()
-    setModalVisible(false)
-    setMarkers([])
+    setSearch(null)
+    setMarker(null)
+    handleCloseModal()
   }
 
   const handleAddMarker = (e) => {
-    setModalVisible(true)
-    setMarkers([...markers, e.nativeEvent.coordinate])
+    setMarker(e.nativeEvent.coordinate)
     animateToSpecificLocation(e.nativeEvent.coordinate)
     setCurrentLocation([
       e.nativeEvent.coordinate.latitude,
       e.nativeEvent.coordinate.longitude,
     ])
     handleOpenModal(e)
-    // setTimeout(() => {
-    //   setMarkers([])
-    // }, 10000)
   }
 
   const handleMarkerPress = (e) =>
     animateToSpecificLocation(e.nativeEvent.coordinate)
-
-  const handleOpenModal = () => {
-    setModalVisible(true)
-  }
-  const handleCloseModal = () => {
-    setModalVisible(false)
-    setInputIsFocused(false)
-    setModalVisible(false)
-    setErrorInsert(null)
-    setMarkers([])
-  }
 
   const saveParked = async () => {
     vibrate()
@@ -209,8 +210,8 @@ export default function MapScreen({ navigation }) {
 
   const mapPress = () => {
     if (isModalVisible) setModalVisible(false)
-    if (inputIsFocused) setInputIsFocused(false)
-    if (search) setSearch(null)
+    // if (inputIsFocused) setInputIsFocused(false)
+    // if (search) setSearch(null)
     Keyboard.dismiss()
   }
 
@@ -218,6 +219,15 @@ export default function MapScreen({ navigation }) {
 
   return (
     <MapContaioner>
+      <Search
+        isModalVisible={isModalVisible}
+        handleSave={handleSave}
+        setCurrentLocation={setSavedLocation}
+        setSavedLocation={setSavedLocation}
+        errorInsert={errorInsert}
+      />
+      <Compass />
+
       <StyledMapView
         ref={mapView}
         region={animatedRegion}
@@ -229,20 +239,18 @@ export default function MapScreen({ navigation }) {
         provider={'google'}
         onPanDrag={onMapPanDrag}
         onMarkerPress={handleMarkerPress}
-        // onPress={mapPress}
+        onPress={mapPress}
         onLongPress={handleAddMarker}
         rotateEnabled={true}
       >
-        {markers &&
-          markers.map((marker, id) => (
+        {marker &&(
             <Pin
-              key={id}
               coordinate={marker}
               color={theme.colors.accent}
               iconName={'location'}
               iconSize={45}
             />
-          ))}
+          )}
 
         {pin && (
           <Pin
@@ -273,15 +281,6 @@ export default function MapScreen({ navigation }) {
         )}
       </StyledMapView>
 
-      {/* <Modal isVisible={isModalVisible}>
-        <Form
-          handleCloseModal={handleCloseModal}
-          handleSave={handleSave}
-          inputRef={inputRef}
-          errorInsert={errorInsert}
-        />
-      </Modal> */}
-
       {pin && isArrowVisible && (
         <PointerArrow
           fromCoordinate={currentRegion}
@@ -289,18 +288,14 @@ export default function MapScreen({ navigation }) {
           onPress={goToPin}
         />
       )}
-      <Compass />
 
-      {isModalVisible && inputIsFocused && (
+      {isModalVisible && (
         <ActionForm
           handleSave={handleSave}
-          ref={inputRef}
           handleCloseModal={handleCloseModal}
           errorInsert={errorInsert}
         />
       )}
-
-      <Search isModalVisible={isModalVisible} handleSave={handleSave} />
 
       <ButtonIcon
         iconName={'locate'}

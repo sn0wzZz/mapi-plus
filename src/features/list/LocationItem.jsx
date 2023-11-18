@@ -1,12 +1,7 @@
 import { useRoute } from '@react-navigation/native'
 import styled from 'styled-components/native'
 import theme from '../../theme'
-import {
-  Keyboard,
-  Text,
-  TouchableHighlight,
-  View,
-} from 'react-native'
+import { Keyboard, Text, TouchableHighlight, View } from 'react-native'
 
 import { useMapContext } from '../../contexts/MapContext'
 import { useDarkMode } from '../../contexts/DarkModeContext'
@@ -68,13 +63,16 @@ export default function LocationItem({
   item,
   selectedLocations,
   setSelectedLocations,
+  setShowOnMapClicked,
   navigation,
   itemBg,
 }) {
   const { variant } = useDarkMode()
-  const { setPin, vibrate, search, setSearch } = useMapContext()
+  const { setPin, vibrate, search, setSearch, setInputIsFocused } =
+    useMapContext()
   const { name: routeName } = useRoute()
   const { animateToSpecificLocation } = useMapOperations()
+
 
   const pressHandler = (id, name, latitude, longitude) => {
     if (selectedLocations?.length) {
@@ -84,6 +82,8 @@ export default function LocationItem({
     longitude = parseFloat(longitude)
     let locationPin = { latitude, longitude }
     setPin({ locationPin, name })
+    if(setInputIsFocused)setInputIsFocused(false)
+    if(setShowOnMapClicked)setShowOnMapClicked(true)
     animateToSpecificLocation(locationPin)
     if (routeName === 'List') navigation.navigate('Map')
     if (search) {

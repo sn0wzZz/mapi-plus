@@ -20,7 +20,7 @@ const MapProvider = ({ children }) => {
     latitudeDelta: 0.9,
     longitudeDelta: 0.9,
   })
-  const [markers, setMarkers] = useState([])
+  const [marker, setMarker] = useState(null)
   const [pin, setPin] = useState(null)
   const [data, setData] = useState([])
   const [locationType, setLocationType] = useState('location')
@@ -32,6 +32,8 @@ const MapProvider = ({ children }) => {
   const [search, setSearch] = useState(null)
   const [searchIsGeoCoords, setSearchIsGeoCoords] = useState(false)
   const [searchPinLocation, setSearchPinLocation] = useState(null)
+
+  const [inputIsFocused, setInputIsFocused] = useState(false)
   
 
   const vibrate = () => Vibration.vibrate(50, false)
@@ -40,8 +42,8 @@ const MapProvider = ({ children }) => {
   const value = {
     animatedRegion,
     setAnimatedRegion,
-    markers,
-    setMarkers,
+    marker,
+    setMarker,
     pin,
     setPin,
     data,
@@ -68,6 +70,8 @@ const MapProvider = ({ children }) => {
     setSearchIsGeoCoords,
     searchPinLocation,
     setSearchPinLocation,
+    inputIsFocused,
+    setInputIsFocused,
   }
   return <MapContext.Provider value={value}>{children}</MapContext.Provider>
 }

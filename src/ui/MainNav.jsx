@@ -14,6 +14,7 @@ import ListScreen from '../features/list/ListScreen'
 import ButtonIcon from './ButtonIcon'
 
 import { useDarkMode } from '../contexts/DarkModeContext'
+import { useMapContext } from '../contexts/MapContext'
 
 const mapName = 'Map'
 const listName = 'List'
@@ -21,12 +22,14 @@ const listName = 'List'
 const Tab = createBottomTabNavigator()
 
 const Container =styled(SafeAreaView)`
+  z-index: -99;
   width: 100%;
   height: 100%;
 `
 
 export default function MainNav() {
   const {isDarkMode, toggleDarkMode} = useDarkMode()
+  const {inputIsFocused} = useMapContext()
   const variant = isDarkMode? theme.colors : theme.colorsLight
   const options = ({ route }) => ({
     headerShown: false,
@@ -44,6 +47,8 @@ export default function MainNav() {
       height: 60,
       borderTopWidth: 0,
       borderRadius: 40,
+      zIndex: inputIsFocused ? -1 : 1 ,
+
     },
     tabBarIcon: ({ focused, color, size }) => {
       let iconName
@@ -66,7 +71,7 @@ export default function MainNav() {
         top={'10px'}
         color={theme.colors.accent}
       />
-      <NavigationContainer style={{ position: 'relative' }}>
+      <NavigationContainer style={{ position: 'relative', zIndex: -2 }}>
         <StatusBar style='auto' />
         <Tab.Navigator initialRouteName={mapName} screenOptions={options}>
           <Tab.Screen name={mapName} component={MapScreen} />

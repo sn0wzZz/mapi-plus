@@ -6,6 +6,7 @@ import { Magnetometer } from 'expo-sensors'
 
 import { useDarkMode } from '../contexts/DarkModeContext'
 
+
 const CompassContainer = styled(View)`
   position: absolute;
   top: 70px;
@@ -46,7 +47,7 @@ const NeedleSouth = styled(View)`
   border-left-color: transparent;
   border-right-color: transparent;
   border-bottom-color: transparent;
-  border-top-color: ${(props) => props.variant.textWhite};
+  border-top-color: ${theme.colors.accent};
 `
 const NeedleNorth = styled(View)`
   position: absolute;
@@ -58,7 +59,7 @@ const NeedleNorth = styled(View)`
   border-left-color: transparent;
   border-right-color: transparent;
   border-top-color: transparent;
-  border-bottom-color: ${theme.colors.accent};
+  border-bottom-color: ${(props) => props.variant.textWhite};
   /* transform: translateX(100%); */
 `
 
@@ -68,9 +69,13 @@ const CompassText = styled(Text)`
   margin: 5px;
   padding: 5px 10px;
   font-weight: bold;
-  width: 50px;
+  width: max-content;
+  max-width: 76px;
   text-align: center;
   border-radius: ${theme.radiuses.full};
+`
+const Span = styled(Text)`
+  color: ${theme.colors.accent};
 `
 const magneticDeclination = -10
 
@@ -82,6 +87,8 @@ export default function Compass() {
       y: 0,
     })
     const alpha = 0.9 // Smoothing factor (adjust as needed)
+
+
 
     useEffect(() => {
       const subscribeToMagnetometer = async () => {
@@ -99,15 +106,29 @@ export default function Compass() {
 
             // Update the smoothed data
             setSmoothedMagnetometerData({ x: smoothedX, y: smoothedY })
+            
+              let angle = 0
+                if (Math.atan2(y, x) >= 0) {
+                  angle = Math.atan2(y, x) * (180 / Math.PI)
+                } else {
+                  angle = (Math.atan2(y, x) + 2 * Math.PI) * (180 / Math.PI)
+                }
 
-            const angle = Math.atan2(smoothedX, smoothedY) * (180 / Math.PI)
+
+            // const angle = Math.atan2(smoothedX, smoothedY) * (180 / Math.PI)
+            // const angle =
+            //   (Math.atan2(smoothedX, smoothedY) + 2 * Math.PI) * (180 / Math.PI)
 
             // Adjust the angle for magnetic declination
-            const adjustedAngle = angle -10 + magneticDeclination
-            setHeading(adjustedAngle >= 0 ? adjustedAngle : 360 + adjustedAngle)
+            const adjustedAngle = angle + magneticDeclination
+            setHeading(
+              adjustedAngle - 90 >= 0
+                ? adjustedAngle - 80
+                : 281 + adjustedAngle
+            )
           })
 
-          Magnetometer.setUpdateInterval(250)
+          Magnetometer.setUpdateInterval(1000)
         }
       }
 
@@ -118,15 +139,37 @@ export default function Compass() {
       }
     }, [])
 
+    const direction = (degree) => {
+      if (degree >= 22.5 && degree < 67.5) {
+        return 'NE'
+      } else if (degree >= 67.5 && degree < 112.5) {
+        return 'E'
+      } else if (degree >= 112.5 && degree < 157.5) {
+        return 'SE'
+      } else if (degree >= 157.5 && degree < 202.5) {
+        return 'S'
+      } else if (degree >= 202.5 && degree < 247.5) {
+        return 'SW'
+      } else if (degree >= 247.5 && degree < 292.5) {
+        return 'W'
+      } else if (degree >= 292.5 && degree < 337.5) {
+        return 'NW'
+      } else {
+        return 'N'
+      }
+    }
+
   return (
     <CompassContainer>
       <CompassBox variant={variant}>
-        <CompassNeedle rotation={heading}>
-          <NeedleSouth variant={variant} />
-          <NeedleNorth />
+        <CompassNeedle rotation={-heading}>
+          <NeedleSouth />
+          <NeedleNorth variant={variant} />
         </CompassNeedle>
       </CompassBox>
-      <CompassText variant={variant}>{Math.trunc(heading)}°</CompassText>
+      <CompassText variant={variant}>
+        {Math.trunc(heading)}° <Span>{direction(Math.trunc(heading))}</Span>
+      </CompassText>
     </CompassContainer>
   )
 }

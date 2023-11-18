@@ -36,15 +36,16 @@ const Header = styled(Text)`
 export default function ListScreen({ navigation }) {
   const [selectedLocations, setSelectedLocations] = useState([])
   const { variant } = useDarkMode()
-  const { markers, data, setPin, isLoading } = useMapContext()
+  const { marker, data, setPin, isLoading } = useMapContext()
 
   const { createTable, deleteData, fetchData, deleteDataById } = useDbContext()
 
   let db = openDatabase('locationsDB.db')
 
+
   useEffect(() => {
     fetchData()
-  }, [markers])
+  }, [marker])
 
   const DeleteLocationAlert = () =>
     Alert.alert('Delete all locations', 'Are you sure?', [

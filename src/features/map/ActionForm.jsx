@@ -12,59 +12,68 @@ import ButtonIcon from '../../ui/ButtonIcon'
 const StyledActionForm = styled(View)`
   position: absolute;
   bottom: 0;
-  padding: 10px 5px;
-  width: 100%;
+  padding: 10px 7.5px;
+  /* width: 100%; */
   background-color: ${(props) => props.variant.background};
   z-index: 99999;
   flex: 1;
-  flex-direction: column;
-  gap: 2px;
-  /* align-items: center; */
-  border-radius: ${theme.radiuses.sm} ${theme.radiuses.sm} 0 0;
+  flex-direction: row;
+  gap:5px;
+  align-items: center;
+  border-radius: ${theme.radiuses.md} ${theme.radiuses.md} 0 0;
+  /* padding-bottom: ${props=> props.focused? '10px':'100px'}; */
 `
 
 const InputBox = styled(View)`
   flex: 1;
   flex-direction: row;
-  width: 100%;
-  background: rgba(40, 40, 40, 0.4);
+  /* width: 100%; */
+  background: ${(props) => props.variant.overlay};
+  z-index: 99999;
   border-radius: ${theme.radiuses.full};
   overflow: hidden;
+  position: relative;
 `
 
 const InputField = styled(TextInput)`
   padding-horizontal: 10px;
   color: ${theme.colors.accent};
   max-width: 215px;
-  width: 215px;
+  width:60%;
 `
 
 const StyledPicker = styled(Picker)`
-  width: 45%;
-  padding: 0;
+  width: 205px;
+  margin-left: -20px;
   gap: 0;
   color: ${theme.colors.accent};
+  
 `
 
 const Buttons = styled(View)`
-  position: relative;
-  flex: 1;
   flex-direction: row;
-  gap: 10px;
+  margin-left: auto;
+  gap: 5px;
 `
 
 const clearButton = css`
   position: none;
   width: 40px;
   height: 40px;
+  max-width: 40px;
   right: none;
   top: none;
-  justify-content: center;
+  display: inline-block;
+  /* float: inline-end; */
+  /* justify-content: center; */
 `
 
 const ErrorMessage = styled(Text)`
+  position: absolute;
+  bottom:11px;
+  left: 15px;
   opacity: ${(props) => (props.errorInsert ? '1' : '0')};
-  font-size: 13px;
+  font-size: 10px;
   color: red;
   text-align: left;
   /* background-color: ${theme.colors.error}; */
@@ -97,7 +106,8 @@ export default function ActionForm({
   handleCloseModal,
   handleSave,
   errorInsert,
-  setShowOnMapClicked
+  setShowOnMapClicked,
+  setSavedLocation,
 }) {
   const { variant } = useDarkMode()
   const {
@@ -108,6 +118,9 @@ export default function ActionForm({
     locationName,
     setLocationName,
     inputRef,
+    setInputIsFocused,
+    setSearchIsGeoCoords,
+    setCurrentLocation,
   } = useMapContext()
   const { animateToSpecificLocation } = useMapOperations()
 
@@ -118,31 +131,27 @@ export default function ActionForm({
   }
   return (
     <StyledActionForm variant={variant}>
-      <InputBox>
+      <InputBox variant={variant}>
         <InputField
           ref={inputRef}
           placeholder='Location name'
           placeholderTextColor={'lightgrey'}
           value={locationName}
           onChangeText={setLocationName}
+          onFocus={() => {
+            setInputIsFocused(true)
+          }}
         />
         <StyledPicker
           selectedValue={locationType}
           mode='dropdown'
           dropdownIconColor={theme.colors.accent}
-          style={{ padding: 0, margin: 0 }}
           onValueChange={(itemValue, itemIndex) => {
             setLocationType(itemValue)
-            console.log(locationType)
           }}
         >
           {items.map((item, id) => (
-            <Picker.Item
-              key={id}
-              label={item.label}
-              value={item.value}
-              style={{ padding: 0, margin: 0, gap: 0 }}
-            />
+            <Picker.Item key={id} label={item.label} value={item.value} />
           ))}
         </StyledPicker>
       </InputBox>
@@ -151,7 +160,8 @@ export default function ActionForm({
         {isGeoCoord && (
           <ButtonIcon
             iconName='map'
-            color={variant.textWhite}
+            color={theme.colors.textWhite}
+            bgColor={theme.colors.secondaryAccent}
             style={clearButton}
             onPressFunction={(e) => {
               handelShow(e)
@@ -160,7 +170,7 @@ export default function ActionForm({
         )}
         <ButtonIcon
           iconName='save'
-          color={variant.textWhite}
+          color={theme.colors.textWhite}
           style={clearButton}
           bgColor={theme.colors.accent}
           onPressFunction={() => {
@@ -169,14 +179,19 @@ export default function ActionForm({
         />
         <ButtonIcon
           iconName='close'
-          color={variant.textWhite}
+          color={theme.colors.textWhite}
           style={clearButton}
           bgColor={'tomato'}
           onPressFunction={() => {
             if (handleCloseModal) {
               handleCloseModal()
+              setSearchIsGeoCoords(false)
             } else {
               setSearch('')
+              setInputIsFocused(false)
+              setSearchIsGeoCoords(false)
+              setSavedLocation(null)
+              setCurrentLocation(null)
               Keyboard.dismiss()
             }
           }}

@@ -1,14 +1,12 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
-import { TextInput, View } from 'react-native'
+import { Keyboard, TextInput, View } from 'react-native'
 import styled from 'styled-components/native'
 import theme from '../theme'
 import Icon from 'react-native-vector-icons/Ionicons'
 
 import { useMapContext } from '../contexts/MapContext'
 import { useDarkMode } from '../contexts/DarkModeContext'
-
-import useMapOperations from '../features/map/useMapOperations'
 
 import List from './List'
 import ActionForm from '../features/map/ActionForm'
@@ -51,7 +49,12 @@ function isGeoCoord(inputString) {
   return geoCoordPattern.test(inputString)
 }
 
-export default function Search({ isModalVisible, handleSave }) {
+export default function Search({
+  isModalVisible,
+  handleSave,
+  setSavedLocation,
+  errorInsert,
+}) {
   const { variant } = useDarkMode()
   const {
     data,
@@ -60,17 +63,22 @@ export default function Search({ isModalVisible, handleSave }) {
     searchIsGeoCoords,
     setSearchIsGeoCoords,
     setSearchPinLocation,
+    inputIsFocused,
+    setInputIsFocused,
   } = useMapContext()
-  const { animateToSpecificLocation } = useMapOperations()
 
   const [searchPin, setSearchPin] = useState(null)
-  const [focused, setFocused] = useState(false)
   const [showOnMapClicked, setShowOnMapClicked] = useState(false)
+  const [isKyeboardVisible, setIsKeyboardVisible] = useState(false)
+
+  useEffect(() => {
+    setIsKeyboardVisible(Keyboard.isVisible())
+    // console.log(Keyboard.isVisible())
+  }, [Keyboard.isVisible()])
 
   const checkSearch = (e) => {
     const value = e
-
-    console.log(isGeoCoord(value))
+    console.log(isGeoCoord(value), inputIsFocused, searchIsGeoCoords)
     if (isGeoCoord(value)) {
       setSearchIsGeoCoords(true)
       const [latitude, longitude] = value.trim(' ').split(',')
@@ -90,42 +98,46 @@ export default function Search({ isModalVisible, handleSave }) {
         <SearchBox
           placeholder='Search...'
           value={search}
-          disabled={isModalVisible}
+          editable={!isModalVisible}
           placeholderTextColor={'grey'}
           onChangeText={(e) => {
             setSearch(e)
             checkSearch(e)
             setShowOnMapClicked(false)
           }}
-          // onBlur={() => {
-          //   setSearchIsGeoCoords(false)
-          // }}
+          onBlur={(e) => {
+            setSearch(e._targetInst.memoizedProps.value)
+            if (!search?.length) setInputIsFocused(false)
+          }}
           onFocus={() => {
             checkSearch(search)
-            setFocused(true)
+            setInputIsFocused(true)
           }}
         />
       </SearchContainer>
 
-      {search && focused && !showOnMapClicked && (
+      {search && !showOnMapClicked && (
         <SearchList variant={variant}>
           <List
-            topOffset='130px'
-            height={searchIsGeoCoords ? '60%' : '71%'}
+            setShowOnMapClicked={setShowOnMapClicked}
+            topOffset='125px'
+            height={searchIsGeoCoords ? '59%' : '71%'}
             itemBg={variant.background}
             data={data.filter((el) =>
               el.name.toLowerCase().includes(search.toLowerCase())
             )}
           />
-          {searchIsGeoCoords && (
-            <ActionForm
-              isGeoCoord={isGeoCoord}
-              searchPin={searchPin}
-              handleSave={handleSave}
-              setShowOnMapClicked={setShowOnMapClicked}
-            />
-          )}
         </SearchList>
+      )}
+      {searchIsGeoCoords && inputIsFocused && (
+        <ActionForm
+          isGeoCoord={isGeoCoord}
+          searchPin={searchPin}
+          handleSave={handleSave}
+          errorInsert={errorInsert}
+          setShowOnMapClicked={setShowOnMapClicked}
+          setSavedLocation={setSavedLocation}
+        />
       )}
     </>
   )

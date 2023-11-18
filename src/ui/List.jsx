@@ -2,10 +2,11 @@ import { FlatList, View} from 'react-native'
 import styled from 'styled-components'
 
 import LocationItem from '../features/list/LocationItem'
+import theme from '../theme'
 
 const StyledList = styled(View)`
   flex: 1;
-  z-index: ${(props) => props.zIndex || 1 };
+  z-index: ${(props) => props.zIndex || 1};
   /* height: max-content; */
   height: ${(props) => props.height};
   overflow: scroll;
@@ -13,9 +14,20 @@ const StyledList = styled(View)`
   max-width: 500px;
   position: absolute;
   top: ${(props) => props.topOffset};
+  border-radius: ${theme.radiuses.md};
 `
 
-export default function List({ data, topOffset, height, zIndex, selectedLocations, setSelectedLocations ,navigation, itemBg }) {
+export default function List({
+  data,
+  topOffset,
+  height,
+  zIndex,
+  selectedLocations,
+  setSelectedLocations,
+  navigation,
+  itemBg,
+  setShowOnMapClicked,
+}) {
   return (
     <StyledList topOffset={topOffset} height={height} zIndex={zIndex}>
       <FlatList
@@ -30,6 +42,7 @@ export default function List({ data, topOffset, height, zIndex, selectedLocation
               itemBg={itemBg}
               selectedLocations={selectedLocations}
               setSelectedLocations={setSelectedLocations}
+              setShowOnMapClicked={setShowOnMapClicked}
               navigation={navigation}
             />
           )

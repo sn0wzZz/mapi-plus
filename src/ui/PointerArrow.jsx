@@ -8,9 +8,9 @@ import { useDarkMode } from '../contexts/DarkModeContext'
 
 const StyledPointerArrow = styled(TouchableHighlight)`
   position: absolute;
-  top: 395px;
+  top: 400px;
   right: 25px;
-  z-index: 99;
+  z-index: 9;
   padding: 8px 9.5px;
   border-radius: ${theme.radiuses.full};
   background: ${(props) => props.variant.background || theme.colors.background};
@@ -45,7 +45,7 @@ export default function PointerArrow({
     startAnimation((angle * 180) / Math.PI)
   }, [angle])
 
-  console.log('angle:', angle)
+  // console.log('angle:', angle)
 
   return (
     <StyledPointerArrow

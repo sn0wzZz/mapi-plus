@@ -37,7 +37,7 @@ function DbProvider({ children }) {
     db.transaction((tx) => {
       tx.executeSql(
         'INSERT INTO locations (name, type, latitude, longitude) VALUES (?, ?, ?, ?);',
-        [name, type, latitude, longitude],
+        [name, type, latitude,longitude],
         (_, results) => {
           console.log('Successfully inserted', results.rowsAffected)
         },
@@ -45,6 +45,7 @@ function DbProvider({ children }) {
       )
     })
   }
+
 
   // Inserts where you parked your car
   const insertParkingData = (latitude, longitude) => {
@@ -91,7 +92,7 @@ function DbProvider({ children }) {
 
           setData(newData)
           setIsLoading(false)
-          // console.log('latest data', data)
+          // console.log('latest data', newData)
         },
         (_, error) => console.error('error fetch', error)
       )
