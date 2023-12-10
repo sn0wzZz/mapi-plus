@@ -13,6 +13,7 @@
     "@react-native-picker/picker": "2.4.10",
     "@react-navigation/bottom-tabs": "^6.5.9",
     "@react-navigation/native": "^6.1.8",
+    "arcgis-js-api": "^4.28.10",
     "babel-plugin-styled-components": "^2.1.4",
     "expo": "~49.0.13",
     "expo-constants": "^14.4.2",
@@ -24,9 +25,9 @@
     "expo-status-bar": "~1.6.0",
     "expo-system-ui": "~2.4.0",
     "metro-core": "^0.79.1",
-    "react": "^18.2.0",
+    "react": "18.2.0",
     "react-dom": "^18.2.0",
-    "react-native": "0.72.6",
+    "react-native": "0.72.7",
     "react-native-compass-heading": "^1.5.0",
     "react-native-loading-spinner-overlay": "^3.0.1",
     "react-native-maps": "1.7.1",
@@ -36,7 +37,12 @@
     "styled-components": "^6.0.8"
   },
   "devDependencies": {
-    "@babel/core": "^7.20.0"
+    "@babel/core": "^7.23.3",
+    "@babel/preset-env": "^7.23.3",
+    "@babel/preset-react": "^7.23.3",
+    "eslint": "^8.54.0",
+    "eslint-plugin-react": "^7.33.2",
+    "eslint-plugin-react-native": "^4.1.0"
   },
   "private": true
 }

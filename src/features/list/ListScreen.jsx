@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import {  Text, Alert, SafeAreaView } from 'react-native'
+import { Text, Alert, SafeAreaView } from 'react-native'
 import { openDatabase } from 'expo-sqlite'
 import styled from 'styled-components/native'
 import theme from '../../theme'
@@ -12,6 +12,7 @@ import Spinner from 'react-native-loading-spinner-overlay'
 import List from '../../ui/List'
 import Icon from 'react-native-vector-icons/Ionicons'
 import ButtonIcon from '../../ui/ButtonIcon'
+import AlertTemplate from '../../ui/AlertTemplate'
 
 const ListContainer = styled(SafeAreaView)`
   flex: 1;
@@ -42,74 +43,48 @@ export default function ListScreen({ navigation }) {
 
   let db = openDatabase('locationsDB.db')
 
-
   useEffect(() => {
     fetchData()
   }, [marker])
 
+  const deleteAllLocations = () => {
+    deleteData()
+    setPin(null)
+    fetchData()
+  }
+  const emptyDb = () => {
+    setPin(null)
+    db.closeAsync()
+    db.deleteAsync()
+    db = openDatabase('locationsDB.db')
+    createTable()
+    fetchData()
+  }
+  const deleteLocationsById = async (ids) => {
+    console.log(ids)
+    setPin(null)
+    deselectItems()
+    ids.forEach((id) => {
+      deleteDataById(id)
+    })
+    await fetchData()
+  }
+
   const DeleteLocationAlert = () =>
-    Alert.alert('Delete all locations', 'Are you sure?', [
-      {
-        text: 'Cancel',
-        onPress: () => console.log('Cancel Pressed'),
-        style: 'cancel',
-      },
-      {
-        text: 'OK',
-        onPress: () => {
-          deleteData()
-          setPin(null)
-          fetchData()
-        },
-      },
-    ])
+    AlertTemplate('Delete all locations', 'Are you sure?', deleteAllLocations)
 
   const EmptyDBAlert = () =>
-    Alert.alert('Recreate the DB', 'Are you sure?', [
-      {
-        text: 'Cancel',
-        onPress: () => console.log('Cancel Pressed'),
-        style: 'cancel',
-      },
-      {
-        text: 'OK',
-        onPress: () => {
-          setPin(null)
-          db.closeAsync()
-          db.deleteAsync()
-          db = openDatabase('locationsDB.db')
-          createTable()
-          fetchData()
-        },
-      },
-    ])
+    AlertTemplate('Recreate the DB', 'Are you sure?', emptyDb)
 
   const DeleteLocationsByIdAlert = (ids) =>
-    Alert.alert(
+    AlertTemplate(
       'Delete selected locations locations',
       `Are you sure you want to delete ${ids.length === 1 ? 'this' : 'these'} ${
         ids.length === 1 ? '' : ids.length
       } ${ids.length === 1 ? 'location' : 'locations'}?`,
-      [
-        {
-          text: 'Cancel',
-          onPress: () => console.log('Cancel Pressed'),
-          style: 'cancel',
-        },
-        {
-          text: 'OK',
-          onPress: async () => {
-            console.log(ids)
-            setPin(null)
-            deselectItems()
-            ids.forEach((id) => {
-              deleteDataById(id)
-            })
-            await fetchData()
-          },
-        },
-      ]
+      async () => await deleteLocationsById(ids)
     )
+
   const deleteLocations = () => {
     selectedLocations[0]
       ? DeleteLocationsByIdAlert(selectedLocations)
@@ -161,7 +136,7 @@ export default function ListScreen({ navigation }) {
       <ButtonIcon
         iconName={'trash'}
         onPressFunction={deleteLocations}
-        onLongPressFunction={() => EmptyDBAlert()}
+        onLongPressFunction={EmptyDBAlert}
         top={'670px'}
         color={'tomato'}
       />

@@ -9,6 +9,7 @@ import { useDarkMode } from '../../contexts/DarkModeContext'
 import useMapOperations from '../map/useMapOperations'
 
 import Icon from 'react-native-vector-icons/Ionicons'
+import useGeoCoding from '../map/useGeoCoding'
 
 const Row = styled(View)`
   flex: 1;
@@ -59,6 +60,12 @@ const Overlay = styled(View)`
   left: 0;
 `
 
+const Span = styled(Text)`
+  margin-top: 10px;
+  color: ${props=> props.variant.textSecondary};
+  font-size: 11px;
+`
+
 export default function LocationItem({
   item,
   selectedLocations,
@@ -68,22 +75,30 @@ export default function LocationItem({
   itemBg,
 }) {
   const { variant } = useDarkMode()
-  const { setPin, vibrate, search, setSearch, setInputIsFocused } =
+  const { setPin, vibrate, search, setSearch, setInputIsFocused, setDestination } =
     useMapContext()
   const { name: routeName } = useRoute()
   const { animateToSpecificLocation } = useMapOperations()
+  const {getCoords} = useGeoCoding()
 
+  // console.log(item)
 
-  const pressHandler = (id, name, latitude, longitude) => {
+  const pressHandler = async (id, name, latitude, longitude) => {
     if (selectedLocations?.length) {
       return selectLocations(id)
+    }
+    if(!longitude|| !latitude){
+      const coords = await getCoords(name)
+      console.log('Destination:',coords)
+      setDestination(coords)
     }
     latitude = parseFloat(latitude)
     longitude = parseFloat(longitude)
     let locationPin = { latitude, longitude }
     setPin({ locationPin, name })
-    if(setInputIsFocused)setInputIsFocused(false)
-    if(setShowOnMapClicked)setShowOnMapClicked(true)
+    setDestination({latitude:latitude,longitude:longitude})
+    if (setInputIsFocused) setInputIsFocused(false)
+    if (setShowOnMapClicked) setShowOnMapClicked(true)
     animateToSpecificLocation(locationPin)
     if (routeName === 'List') navigation.navigate('Map')
     if (search) {
@@ -121,23 +136,31 @@ export default function LocationItem({
           <ItemHeader>
             <Title>
               {item.name}{' '}
-              {<Icon name={'locate'} size={15} color={theme.colors.accent} />}
+              {<Icon name={'locate'} size={15} color={theme.colors.accent} />}{' '}
             </Title>
-            <Type>
-              {item && item.type.charAt(0).toUpperCase() + item.type.slice(1)}
-            </Type>
+            {item.type && <Type>
+              {item.type.charAt(0).toUpperCase() + item.type.slice(1)}
+            </Type>}
           </ItemHeader>
           <Row>
-            <Text
+            <View style={{
+                flex: 1,
+              }}>
+
+           {item.info && <Text
               style={{
                 color: variant.textWhite,
                 flex: 1,
                 alignItems: 'center',
               }}
-            >
+              >
+              {item.info}
+            </Text>}
+              {item.latitude&& item.longitude&& <Span variant={variant}>
               Latitude: {String(item.latitude)} {'\n'}
               Longitude: {String(item.longitude)}
-            </Text>
+              </Span>}
+              </View>
             <Icon
               name={'location'}
               size={25}

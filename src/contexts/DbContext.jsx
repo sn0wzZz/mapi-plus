@@ -14,18 +14,37 @@ function DbProvider({ children }) {
   const createTable = () => {
     db.transaction((tx) => {
       tx.executeSql(
-        `CREATE TABLE IF NOT EXISTS locations (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, type TEXT, latitude TEXT, longitude TEXT);
-        `,
+        `
+      CREATE TABLE IF NOT EXISTS locations (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT,
+        type TEXT,
+        latitude TEXT,
+        longitude TEXT,
+        info TEXT
+      );
+      
+      CREATE TABLE IF NOT EXISTS parking (
+        id INTEGER PRIMARY KEY,
+        latitude TEXT,
+        longitude TEXT
+      );
+      `,
         (_, results) => {
-          console.log('Successfully created locations table', results.rows)
+          console.log('Successfully created tables', results.rows)
         }
         // (_, error) => console.error('error ct', error)
       )
       tx.executeSql(
-        `CREATE TABLE IF NOT EXISTS parking (id INTEGER PRIMARY KEY, latitude TEXT, longitude TEXT);
-        `,
+        `      
+      CREATE TABLE IF NOT EXISTS parking (
+        id INTEGER PRIMARY KEY,
+        latitude TEXT,
+        longitude TEXT
+      );
+      `,
         (_, results) => {
-          console.log('Successfully created locations table', results.rows)
+          console.log('Successfully created tables', results.rows)
         }
         // (_, error) => console.error('error ct', error)
       )
@@ -33,11 +52,11 @@ function DbProvider({ children }) {
   }
 
   //Insert
-  const insertData = (name, type, latitude, longitude) => {
+  const insertData = (name, type, latitude, longitude, info) => {
     db.transaction((tx) => {
       tx.executeSql(
-        'INSERT INTO locations (name, type, latitude, longitude) VALUES (?, ?, ?, ?);',
-        [name, type, latitude,longitude],
+        'INSERT INTO locations (name, type, latitude, longitude, info) VALUES (?, ?, ?, ?, ?);',
+        [name, type, latitude, longitude, info],
         (_, results) => {
           console.log('Successfully inserted', results.rowsAffected)
         },
@@ -45,7 +64,6 @@ function DbProvider({ children }) {
       )
     })
   }
-
 
   // Inserts where you parked your car
   const insertParkingData = (latitude, longitude) => {
@@ -61,17 +79,6 @@ function DbProvider({ children }) {
         }
       )
     })
-    //if a record exists update it
-    // db.transaction((tx) => {
-    //   tx.executeSql(
-    //     `UPDATE parking SET latitude = ${latitude} longitude = ${longitude} WHERE id = 1;`,
-    //     [latitude, longitude],
-    //     (_, results) => {
-    //       console.log('Successfully updated parking', results.rowsAffected)
-    //     },
-    //     (_, error) => console.error('error insert', error)
-    //   )
-    // })
   }
 
   // Fetchs saved locations
@@ -106,6 +113,7 @@ function DbProvider({ children }) {
         'SELECT * FROM parking',
         [],
         (_, results) => {
+          if (!results.rows._array.at(0)) return
           const latitude = parseFloat(results.rows._array.at(0).latitude)
           const longitude = parseFloat(results.rows._array.at(0).longitude)
           const newParked = { latitude: latitude, longitude: longitude }

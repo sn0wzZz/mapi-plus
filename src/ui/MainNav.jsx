@@ -15,6 +15,7 @@ import ButtonIcon from './ButtonIcon'
 
 import { useDarkMode } from '../contexts/DarkModeContext'
 import { useMapContext } from '../contexts/MapContext'
+import useKeyboardVisibility from '../utils/useKeyboardVisibility'
 
 const mapName = 'Map'
 const listName = 'List'
@@ -29,7 +30,12 @@ const Container =styled(SafeAreaView)`
 
 export default function MainNav() {
   const {isDarkMode, toggleDarkMode} = useDarkMode()
-  const {inputIsFocused} = useMapContext()
+  const {inputIsFocused, searchIsGeoCoords, currentLocation} = useMapContext()
+
+    const isKeyboardVisible = useKeyboardVisibility()
+    console.log('Is keyboard visible: ', isKeyboardVisible, inputIsFocused, currentLocation, searchIsGeoCoords)
+
+
   const variant = isDarkMode? theme.colors : theme.colorsLight
   const options = ({ route }) => ({
     headerShown: false,
@@ -47,8 +53,7 @@ export default function MainNav() {
       height: 60,
       borderTopWidth: 0,
       borderRadius: 40,
-      zIndex: inputIsFocused ? -1 : 1 ,
-
+      zIndex: isKeyboardVisible || searchIsGeoCoords || currentLocation ? -1 : 1,
     },
     tabBarIcon: ({ focused, color, size }) => {
       let iconName

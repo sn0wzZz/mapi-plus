@@ -8,7 +8,7 @@ import Icon from 'react-native-vector-icons/Ionicons'
 
 const StyledTouchableHighLight = styled(TouchableHighlight)`
   position: absolute;
-  flex: 1;
+  /* flex: 1; */
   justify-content: center;
   align-items: center;
   background-color: ${props=> props.bgColor? props.bgColor : props.variant.background};
@@ -30,13 +30,16 @@ export default function ButtonIcon({
   bottom,
   color,
   bgColor,
-  style
+  style,
+  underlay,
+  disabled
 }) {
-  const {variant} = useDarkMode()
+  const { variant } = useDarkMode()
   return (
     <StyledTouchableHighLight
+    disabled={disabled}
       variant={variant}
-      underlayColor={variant.underlay}
+      underlayColor={underlay || variant.underlay}
       top={top}
       bottom={bottom}
       bgColor={bgColor}

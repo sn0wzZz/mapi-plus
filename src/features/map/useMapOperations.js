@@ -1,74 +1,78 @@
-import AnimatedMapRegion from 'react-native-maps/lib/AnimatedRegion'
-import {  useMapContext } from '../../contexts/MapContext'
+import { useMapContext } from '../../contexts/MapContext'
 import * as Location from 'expo-location'
 
 export default function useMapOperations() {
-  const { animatedRegion, setAnimatedRegion, setIsArrowVisible } = useMapContext()
+  const { animatedRegion, setAnimatedRegion, mapView } = useMapContext()
 
   const locationFetcher = async () => {
-    let {
-      coords: { latitude, longitude },
-    } = await Location.getCurrentPositionAsync({})
-    return { latitude, longitude }
+    try {
+      let {
+        coords: { latitude, longitude },
+      } = await Location.getCurrentPositionAsync()
+      return { latitude, longitude }
+    } catch (error) {
+      console.error('Error fetching location:', error)
+    }
   }
 
-  const initLocaton = async () => {
-    let { status } = await Location.requestForegroundPermissionsAsync()
-    if (status !== 'granted') return
-
-    const { latitude, longitude } = await locationFetcher()
-
-    setAnimatedRegion(
-      new AnimatedMapRegion({
-        latitude,
-        longitude,
-        latitudeDelta: 0.004,
-        longitudeDelta: 0.004,
-      })
-    )
+  const initLocation = async () => {
+    try {
+      let { status } = await Location.requestForegroundPermissionsAsync()
+      if (status !== 'granted') return
+      animateToLocation()
+    } catch (error) {
+      console.error('Error initializing location:', error)
+    }
   }
 
   const animateToSpecificLocation = (coords, delta = 0.01) => {
-    animatedRegion
-      .timing({
-        ...coords,
-        latitudeDelta: delta,
-        longitudeDelta: delta,
-        duration: 1000,
-      })
-      .start()
+    mapView.current.animateToRegion({
+      ...coords,
+      latitudeDelta: delta,
+      longitudeDelta: delta,
+    })
   }
 
-  const animateToLocation = async (duration) => {
+  const animateToLocation = async () => {
     const { latitude, longitude } = await locationFetcher()
-    animatedRegion
-      .timing({
-        latitude,
-        longitude,
-        latitudeDelta: 0.004,
-        longitudeDelta: 0.004,
-        duration: duration,
-      })
-      .start()
+    mapView&&mapView.current.animateToRegion({
+      latitude,
+      longitude,
+      latitudeDelta: 0.004,
+      longitudeDelta: 0.004,
+    })
   }
 
-  const zoom = (delta) => {
-    animatedRegion
-      .timing({
-        ...{
-          latitudeDelta: delta,
-          longitudeDelta: delta,
-        },
-        duration: 1000,
-      })
-      .start()
+  const zoomOut = () => {
+    if (mapView.current) {
+      const newRegion = {
+        ...animatedRegion,
+        latitudeDelta: animatedRegion.latitudeDelta * 2,
+        longitudeDelta: animatedRegion.longitudeDelta * 2,
+      }
+      mapView.current.animateToRegion(newRegion, 500)
+      setAnimatedRegion(newRegion)
+    }
+  }
+
+  const zoomIn = () => {
+    if (mapView.current) {
+      const newRegion = {
+        ...animatedRegion,
+        latitudeDelta: animatedRegion.latitudeDelta / 2,
+        longitudeDelta: animatedRegion.longitudeDelta / 2,
+      }
+      mapView.current.animateToRegion(newRegion, 500)
+      setAnimatedRegion(newRegion)
+    }
   }
 
   return {
-    initLocaton,
+    initLocation,
     animateToLocation,
     animateToSpecificLocation,
-    zoom,
+    zoomOut,
+    zoomIn,
     locationFetcher,
   }
 }

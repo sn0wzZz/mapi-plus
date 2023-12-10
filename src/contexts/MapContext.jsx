@@ -1,4 +1,4 @@
-import { useState, createContext, useContext, useRef } from 'react'
+import { useState, createContext, useContext, useRef, createRef } from 'react'
 import { AnimatedRegion } from 'react-native-maps'
 import { Vibration } from 'react-native'
 
@@ -7,12 +7,12 @@ const MapContext = createContext()
 
 const MapProvider = ({ children }) => {
   const [animatedRegion, setAnimatedRegion] = useState(
-    new AnimatedRegion({
+      {
       latitude: 0,
       longitude: 0,
       latitudeDelta: 0.9,
       longitudeDelta: 0.9,
-    })
+    }
   )
   const [currentRegion, setCurrentRegion] = useState({
     latitude: 0,
@@ -23,21 +23,24 @@ const MapProvider = ({ children }) => {
   const [marker, setMarker] = useState(null)
   const [pin, setPin] = useState(null)
   const [data, setData] = useState([])
-  const [locationType, setLocationType] = useState('location')
+  const [locationType, setLocationType] = useState('Location 📍')
   const [locationName, setLocationName] = useState('')
-  const [currentLocation, setCurrentLocation] = useState([])
+  const [currentLocation, setCurrentLocation] = useState(null)
   const [parkingLocation, setParkingLocation] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isArrowVisible, setIsArrowVisible] = useState(false)
   const [search, setSearch] = useState(null)
   const [searchIsGeoCoords, setSearchIsGeoCoords] = useState(false)
   const [searchPinLocation, setSearchPinLocation] = useState(null)
-
+  const [locationInfo, setLocationInfo] = useState(null)
+  const [destination, setDestination] = useState(null)
   const [inputIsFocused, setInputIsFocused] = useState(false)
-  
+  const [searchResult, setSearchResult] = useState(null)
 
   const vibrate = () => Vibration.vibrate(50, false)
   const inputRef = useRef(null)
+
+  const mapView = useRef(null)
 
   const value = {
     animatedRegion,
@@ -72,6 +75,13 @@ const MapProvider = ({ children }) => {
     setSearchPinLocation,
     inputIsFocused,
     setInputIsFocused,
+    locationInfo,
+    setLocationInfo,
+    destination,
+    setDestination,
+    mapView,
+    searchResult,
+    setSearchResult,
   }
   return <MapContext.Provider value={value}>{children}</MapContext.Provider>
 }

@@ -1,5 +1,5 @@
 import { Picker } from '@react-native-picker/picker'
-import { Keyboard, Text, TextInput, View } from 'react-native'
+import { ActivityIndicator, Keyboard, Text, TextInput, View } from 'react-native'
 import styled, { css } from 'styled-components'
 
 import { useDarkMode } from '../../contexts/DarkModeContext'
@@ -14,19 +14,24 @@ const StyledActionForm = styled(View)`
   bottom: 0;
   padding: 10px 7.5px;
   /* width: 100%; */
-  background-color: ${(props) => props.variant.background};
+  background-color: ${(props) => props.variant.backgroundTrSolid};
   z-index: 99999;
   flex: 1;
   flex-direction: row;
   gap:5px;
+  height: 95px;
+  width: 100%;
   align-items: center;
+  justify-content: flex-start;
   border-radius: ${theme.radiuses.md} ${theme.radiuses.md} 0 0;
   /* padding-bottom: ${props=> props.focused? '10px':'100px'}; */
-`
+  `
 
 const InputBox = styled(View)`
+  height: 50px;
   flex: 1;
   flex-direction: row;
+  align-items: center;
   /* width: 100%; */
   background: ${(props) => props.variant.overlay};
   z-index: 99999;
@@ -37,6 +42,7 @@ const InputBox = styled(View)`
 
 const InputField = styled(TextInput)`
   padding-horizontal: 10px;
+  height: 50px;
   color: ${theme.colors.accent};
   max-width: 215px;
   width:60%;
@@ -45,6 +51,7 @@ const InputField = styled(TextInput)`
 const StyledPicker = styled(Picker)`
   width: 205px;
   margin-left: -20px;
+  height: 50px;
   gap: 0;
   color: ${theme.colors.accent};
   
@@ -70,8 +77,9 @@ const clearButton = css`
 
 const ErrorMessage = styled(Text)`
   position: absolute;
-  bottom:11px;
-  left: 15px;
+  width:100%;
+  bottom:5px;
+  left: 7.5px;
   opacity: ${(props) => (props.errorInsert ? '1' : '0')};
   font-size: 10px;
   color: red;
@@ -108,6 +116,8 @@ export default function ActionForm({
   errorInsert,
   setShowOnMapClicked,
   setSavedLocation,
+  setIsLoadingSave,
+  isLoadingSave
 }) {
   const { variant } = useDarkMode()
   const {
@@ -142,6 +152,7 @@ export default function ActionForm({
             setInputIsFocused(true)
           }}
         />
+          {isLoadingSave&&<ActivityIndicator animating={isLoadingSave} color={theme.colors.accent} size={'small'} style={{right: 15}}/>}
         <StyledPicker
           selectedValue={locationType}
           mode='dropdown'
@@ -152,7 +163,7 @@ export default function ActionForm({
         >
           {items.map((item, id) => (
             <Picker.Item key={id} label={item.label} value={item.value} />
-          ))}
+            ))}
         </StyledPicker>
       </InputBox>
       {<ErrorMessage errorInsert={errorInsert}>{errorInsert}</ErrorMessage>}
@@ -188,6 +199,9 @@ export default function ActionForm({
               setSearchIsGeoCoords(false)
             } else {
               setSearch('')
+              setLocationName('')
+              setLocationType('Location 📍')
+              setIsLoadingSave(false)
               setInputIsFocused(false)
               setSearchIsGeoCoords(false)
               setSavedLocation(null)

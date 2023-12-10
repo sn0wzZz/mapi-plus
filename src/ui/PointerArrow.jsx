@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { TouchableHighlight, Animated, Easing } from 'react-native'
 import Icon from 'react-native-vector-icons/Ionicons'
 import theme from '../theme'
@@ -26,7 +26,7 @@ export default function PointerArrow({
 }) {
   const { variant } = useDarkMode()
 
-  const animatedAngle = new Animated.Value(0)
+  const [animatedAngle,setAnimatedAngle] = useState(new Animated.Value(0))
 
   const angle = Math.atan2(
     toCoordinate.longitude - fromCoordinate.longitude,
@@ -35,10 +35,11 @@ export default function PointerArrow({
   const startAnimation = (newAngle) => {
     Animated.timing(animatedAngle, {
       toValue: newAngle,
-      duration: 500,
+      duration: 5000,
       easing: Easing.linear,
       useNativeDriver: false,
     }).start()
+    setAnimatedAngle(new Animated.Value(newAngle))
   }
 
   useEffect(() => {
