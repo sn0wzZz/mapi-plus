@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Text, View } from 'react-native'
 import styled from 'styled-components/native'
 import theme from '../theme'
@@ -9,8 +9,8 @@ import { useDarkMode } from '../contexts/DarkModeContext'
 
 const CompassContainer = styled(View)`
   position: absolute;
-  top: 70px;
-  left: 20px;
+  top: 110px;
+  left: 10px;
   flex: 1;
   flex-direction: row;
   align-items: flex-start;
@@ -23,7 +23,6 @@ const CompassBox = styled(View)`
   flex: 1;
   flex-direction: row;
   border-radius: ${theme.radiuses.full};
-
   align-items: center;
   justify-content: center;
 `
@@ -59,12 +58,12 @@ const NeedleNorth = styled(View)`
   border-left-color: transparent;
   border-right-color: transparent;
   border-top-color: transparent;
-  border-bottom-color: ${(props) => props.variant.textWhite};
+  border-bottom-color: ${(props) => props.variant.textSecondary};
   /* transform: translateX(100%); */
 `
 
 const CompassText = styled(Text)`
-  color: ${(props) => props.variant.textWhite};
+  color: ${(props) => props.variant.textSecondary};
   background: ${(props) => props.variant.background};
   margin: 5px;
   padding: 5px 10px;

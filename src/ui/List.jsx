@@ -1,32 +1,26 @@
-import { FlatList, Text, View} from 'react-native'
+import { FlatList, SafeAreaView, Text, View } from 'react-native'
 import styled from 'styled-components'
 
 import LocationItem from '../features/list/LocationItem'
 import theme from '../theme'
+import Spinner from 'react-native-loading-spinner-overlay'
 import { useDarkMode } from '../contexts/DarkModeContext'
+import Icon from 'react-native-vector-icons/Ionicons'
 
 const StyledList = styled(View)`
   flex: 1;
   z-index: ${(props) => props.zIndex || 1};
-  /* height: max-content; */
-  height: ${(props) => props.height};
+  height: ${(props) => props.height || '100%'};
   overflow: scroll;
   width: 95%;
   max-width: 500px;
   position: absolute;
+  align-self: center;
   top: ${(props) => props.topOffset};
   border-radius: ${theme.radiuses.md};
 `
-const StyledText = styled(Text)`
-  font-weight: bold;
-  color: ${props=>props.variant.textWhite};
-  width: 100%;
-  padding-bottom: 10px;
-  margin-left: 15px;
-`
 
 export default function List({
-  dataSort = true,
   data,
   topOffset,
   height,
@@ -36,16 +30,46 @@ export default function List({
   navigation,
   itemBg,
   setShowOnMapClicked,
-  text
+  isLoading,
 }) {
-  const {variant} = useDarkMode()
+  // console.log('Number of items:', data.length)
+  // console.log('Height:', height)
+
+  const { variant } = useDarkMode()
+  if (data&&!data[0])
+    return (
+      <SafeAreaView style={{ flex: 1, alignItems: 'center', marginTop: '50%' }}>
+        <Text style={{ color: theme.colors.accent, fontSize: 30 }}>
+          No data {<Icon name={'warning'} size={30} color={variant.accent} />}
+        </Text>
+        <Text
+          style={{
+            color: variant.textWhite,
+            width: '100%',
+            textAlign: 'center',
+          }}
+        >
+          Add a marker!
+        </Text>
+      </SafeAreaView>
+    )
+  
+  if (isLoading)
+    return (
+      <SafeAreaView>
+        <Spinner visible={isLoading} color={theme.colors.accent} />
+      </SafeAreaView>
+    )
+    
+
+
   return (
     <StyledList topOffset={topOffset} height={height} zIndex={zIndex}>
-      {data.length > 0 && <StyledText variant={variant}>{text}</StyledText>}
       <FlatList
+        style={{ flex: 1 }}
         keyboardShouldPersistTaps='handled'
         idExtractor={(item) => item.id}
-        data={dataSort ? data?.slice()?.reverse() : data}
+        data={data?.slice()?.reverse()}
         renderItem={({ item }) => {
           return (
             <LocationItem

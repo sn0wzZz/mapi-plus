@@ -11,8 +11,6 @@ const StyledTooltip = styled(SafeAreaView)`
   background-color: ${props=> props.variant.background};
   border-radius: ${theme.radiuses.sm};
   padding: 8px;
-  /* border-width: 1px; */
-  /* border-color: ${(props) => props.color || none}; */
   margin-bottom: 5px;
   position: relative;
 `

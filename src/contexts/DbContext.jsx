@@ -120,7 +120,7 @@ function DbProvider({ children }) {
 
           setParkingLocation(newParked)
           setIsLoading(false)
-          console.log(results.rows._array)
+          // console.log(results.rows._array)
         },
         (_, error) => console.error('error fetch', error)
       )

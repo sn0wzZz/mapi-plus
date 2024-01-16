@@ -1,5 +1,4 @@
-import { useState, createContext, useContext, useRef, createRef } from 'react'
-import { AnimatedRegion } from 'react-native-maps'
+import { useState, createContext, useContext, useRef } from 'react'
 import { Vibration } from 'react-native'
 
 
@@ -35,11 +34,10 @@ const MapProvider = ({ children }) => {
   const [locationInfo, setLocationInfo] = useState(null)
   const [destination, setDestination] = useState(null)
   const [inputIsFocused, setInputIsFocused] = useState(false)
-  const [searchResult, setSearchResult] = useState(null)
+  const [searchResult, setSearchResult] = useState([])
 
   const vibrate = () => Vibration.vibrate(50, false)
   const inputRef = useRef(null)
-
   const mapView = useRef(null)
 
   const value = {

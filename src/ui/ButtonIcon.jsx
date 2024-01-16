@@ -1,9 +1,9 @@
 import { TouchableHighlight, View } from 'react-native'
 import styled from 'styled-components/native'
-import theme from '../theme'
 
 import { useDarkMode } from '../contexts/DarkModeContext'
 
+import theme from '../theme'
 import Icon from 'react-native-vector-icons/Ionicons'
 
 const StyledTouchableHighLight = styled(TouchableHighlight)`
@@ -15,8 +15,8 @@ const StyledTouchableHighLight = styled(TouchableHighlight)`
   border-radius: ${theme.radiuses.full};
   width: 60px;
   height: 60px;
-  z-index: 9;
-  right: 20px;
+  z-index: 1;
+  right: 10px;
   top: ${(props) => props.top};
   bottom: ${props=> props.bottom};
   ${props=> props.style}

@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react'
-import { Text, Alert, SafeAreaView } from 'react-native'
+import { useEffect, useState } from 'react'
+import { Text, SafeAreaView } from 'react-native'
 import { openDatabase } from 'expo-sqlite'
 import styled from 'styled-components/native'
 import theme from '../../theme'
@@ -8,11 +8,16 @@ import { useDarkMode } from '../../contexts/DarkModeContext'
 import { useMapContext } from '../../contexts/MapContext'
 import { useDbContext } from '../../contexts/DbContext'
 
-import Spinner from 'react-native-loading-spinner-overlay'
 import List from '../../ui/List'
-import Icon from 'react-native-vector-icons/Ionicons'
 import ButtonIcon from '../../ui/ButtonIcon'
-import AlertTemplate from '../../ui/AlertTemplate'
+import { AlertTemplate } from '../../utils/helpers'
+import CustomTabView from '../../ui/CustomTabView'
+import { SceneMap } from 'react-native-tab-view'
+import { getLocations } from '../../services/apiLocations'
+
+import { useQuery } from '@tanstack/react-query'
+import { useIsFocused } from '@react-navigation/native'
+import useDeleteLocation from './useDeleteLocation'
 
 const ListContainer = styled(SafeAreaView)`
   flex: 1;
@@ -20,11 +25,11 @@ const ListContainer = styled(SafeAreaView)`
   background-color: ${(props) => props.variant.backgroundSolid};
   height: 10px;
   flex-grow: 1;
-
   justify-content: ${(props) => (props.align ? props.align : '')};
 `
 
 const Header = styled(Text)`
+  top: 40px;
   background-color: ${theme.colors.accent};
   color: black;
   font-weight: bold;
@@ -34,15 +39,33 @@ const Header = styled(Text)`
   font-size: 16px;
 `
 
+const locationRoutes = [
+  { key: 'first', title: 'Online' },
+  { key: 'second', title: 'Offline' },
+]
+
 export default function ListScreen({ navigation }) {
   const [selectedLocations, setSelectedLocations] = useState([])
   const { variant } = useDarkMode()
   const { marker, data, setPin, isLoading } = useMapContext()
+  const {deleteOnlineLocations} = useDeleteLocation()
 
   const { createTable, deleteData, fetchData, deleteDataById } = useDbContext()
 
-  let db = openDatabase('locationsDB.db')
+  const isFocused = useIsFocused()
 
+  let db = openDatabase('locationsDB.db')
+  
+  const {
+    error,
+    data: onlineData,
+    isLoading: isLoadingOnline,
+  } = useQuery({
+    queryKey: ['locations'],
+    queryFn: getLocations,
+    enabled: isFocused,
+  })
+  
   useEffect(() => {
     fetchData()
   }, [marker])
@@ -61,7 +84,7 @@ export default function ListScreen({ navigation }) {
     fetchData()
   }
   const deleteLocationsById = async (ids) => {
-    console.log(ids)
+    // console.log(ids)
     setPin(null)
     deselectItems()
     ids.forEach((id) => {
@@ -82,7 +105,7 @@ export default function ListScreen({ navigation }) {
       `Are you sure you want to delete ${ids.length === 1 ? 'this' : 'these'} ${
         ids.length === 1 ? '' : ids.length
       } ${ids.length === 1 ? 'location' : 'locations'}?`,
-      async () => await deleteLocationsById(ids)
+      async () => (await deleteLocationsById(ids)) || deleteOnlineLocations(ids)
     )
 
   const deleteLocations = () => {
@@ -92,59 +115,56 @@ export default function ListScreen({ navigation }) {
   }
 
   function deselectItems() {
-    console.log('click')
+    // console.log('click')
     return setSelectedLocations([])
   }
 
-  if (isLoading)
-    return (
-      <ListContainer align={'center'} variant={variant}>
-        <Spinner visible={isLoading} color={theme.colors.accent} />
-      </ListContainer>
-    )
-
-  if (!data[0])
-    return (
-      <ListContainer align={'center'} variant={variant}>
-        <Text style={{ color: theme.colors.accent, fontSize: 30 }}>
-          No data {<Icon name={'warning'} size={30} color={variant.accent} />}
-        </Text>
-        <Text
-          style={{
-            color: variant.textWhite,
-            width: '100%',
-            textAlign: 'center',
-          }}
-        >
-          Add a marker!
-        </Text>
-      </ListContainer>
-    )
-
   return (
-    <ListContainer variant={variant}>
-      <Header>Locations</Header>
-      <List
-        data={data}
-        topOffset='80px'
-        height='77%'
-        selectedLocations={selectedLocations}
-        setSelectedLocations={setSelectedLocations}
-        navigation={navigation}
+    <ListContainer align={'center'} variant={variant}>
+      {/* <Header>Locations</Header> */}
+
+      <CustomTabView
+        renderScene={SceneMap({
+          first: () => (
+            <List
+              data={onlineData}
+              height='86%'
+              selectedLocations={selectedLocations}
+              setSelectedLocations={setSelectedLocations}
+              navigation={navigation}
+              isLoading={isLoadingOnline}
+            />
+          ),
+          second: () => (
+            <List
+              data={data}
+              height='86%'
+              selectedLocations={selectedLocations}
+              setSelectedLocations={setSelectedLocations}
+              navigation={navigation}
+              isLoading={isLoading}
+            />
+          ),
+        })}
+        tabRoutes={locationRoutes}
+        position='top'
+        marginTop={60}
+        width={134.5}
       />
 
       <ButtonIcon
         iconName={'trash'}
         onPressFunction={deleteLocations}
         onLongPressFunction={EmptyDBAlert}
-        top={'670px'}
-        color={'tomato'}
+        bottom={'20px'}
+        color={variant.error}
+        disabled={isLoadingOnline}
       />
       {selectedLocations[0] && (
         <ButtonIcon
           iconName={'close'}
           onPressFunction={() => deselectItems()}
-          top={'600px'}
+          bottom={'90px'}
           color={variant.textWhite}
         />
       )}
