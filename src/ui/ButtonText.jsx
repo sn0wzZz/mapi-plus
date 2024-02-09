@@ -1,9 +1,6 @@
-import {
-  Text,
-  TouchableOpacity,
-} from 'react-native'
+import { ActivityIndicator, Text, TouchableOpacity } from 'react-native'
 
-import styled, {css} from 'styled-components/native'
+import styled, { css } from 'styled-components/native'
 import theme from '../theme'
 
 const variants = {
@@ -21,16 +18,18 @@ const StyledButton = styled(TouchableOpacity)`
   align-items: center;
   border-radius: ${theme.radiuses.full};
   padding: 10px 15px;
-  height: 55px;
+  height: ${(props) => props.size}px;
   z-index: 1;
   ${(props) => variants[props.variant]}
+  ${props=> props.style}
 `
 const StyledText = styled(Text)`
-  color:${props=> props.variant === 'primary' ? 'black' : `${theme.colors.accent}`};
+  color: ${(props) =>
+    props.variant === 'primary' ? 'black' : `${theme.colors.accent}`};
   text-align: center;
   font-weight: bold;
-  font-size:18px;
-  ${props=> props.textStyle}
+  font-size: 18px;
+  ${(props) => props.textStyle}
 `
 
 export default function ButtonText({
@@ -39,20 +38,37 @@ export default function ButtonText({
   onLongPressFunction,
   variant,
   textStyle,
-  title
+  title,
+  isLoading,
+  disabled,
+  size=55,
+  style
 }) {
   return (
     <StyledButton
       variant={variant}
       onPress={onPressFunction}
       onLongPress={onLongPressFunction}
+      disabled={disabled}
       title={title}
+      size={size}
+      style={style}
     >
-      <StyledText variant={variant} textStyle={textStyle}>{children}</StyledText>
+      {isLoading ? (
+        <ActivityIndicator
+          animating={true}
+          color={theme.colors.backgroundTrSolid}
+          size={29}
+        />
+      ) : (
+        <StyledText variant={variant} textStyle={textStyle}>
+          {children}
+        </StyledText>
+      )}
     </StyledButton>
   )
 }
 
-ButtonText.defaultProps={
-  variant: 'secondary'
+ButtonText.defaultProps = {
+  variant: 'secondary',
 }

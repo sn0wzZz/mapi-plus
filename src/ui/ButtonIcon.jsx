@@ -1,4 +1,4 @@
-import { TouchableHighlight, View } from 'react-native'
+import { ActivityIndicator, TouchableHighlight, View } from 'react-native'
 import styled from 'styled-components/native'
 
 import { useDarkMode } from '../contexts/DarkModeContext'
@@ -11,15 +11,16 @@ const StyledTouchableHighLight = styled(TouchableHighlight)`
   /* flex: 1; */
   justify-content: center;
   align-items: center;
-  background-color: ${props=> props.bgColor? props.bgColor : props.variant.background};
+  background-color: ${(props) =>
+    props.bgColor ? props.bgColor : props.variant.background};
   border-radius: ${theme.radiuses.full};
-  width: 60px;
-  height: 60px;
+  width: ${(props) => props.bgSize}px;
+  height: ${(props) => props.bgSize}px;
   z-index: 1;
-  right: 10px;
+  ${(props) => (props.left ? 'left: 10px;' : 'right: 10px;')}
   top: ${(props) => props.top};
-  bottom: ${props=> props.bottom};
-  ${props=> props.style}
+  bottom: ${(props) => props.bottom};
+  ${(props) => props.style}
 `
 
 export default function ButtonIcon({
@@ -32,12 +33,17 @@ export default function ButtonIcon({
   bgColor,
   style,
   underlay,
-  disabled
+  left,
+  disabled,
+  isLoading,
+  size=22,
+  bgSize=60,
+  loaderColor
 }) {
   const { variant } = useDarkMode()
   return (
     <StyledTouchableHighLight
-    disabled={disabled}
+      disabled={disabled}
       variant={variant}
       underlayColor={underlay || variant.underlay}
       top={top}
@@ -45,10 +51,16 @@ export default function ButtonIcon({
       bgColor={bgColor}
       onPress={onPressFunction}
       onLongPress={onLongPressFunction}
+      left={left}
       style={style}
+      bgSize={bgSize}
     >
       <View>
-        <Icon name={iconName} size={22} color={color} />
+        {isLoading ? (
+          <ActivityIndicator animating={true} color={loaderColor||theme.colors.accent} />
+        ) : (
+          <Icon name={iconName} size={size} color={color} />
+        )}
       </View>
     </StyledTouchableHighLight>
   )

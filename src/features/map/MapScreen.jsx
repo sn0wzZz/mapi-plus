@@ -31,6 +31,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import Toast from 'react-native-toast-message'
 import useCreateLocation from '../list/useCreateLocation'
 
+
 const MapContaioner = styled(View)`
   flex: 1;
   background-color: ${theme.colors.background};
@@ -38,13 +39,11 @@ const MapContaioner = styled(View)`
   justify-content: center;
   position: relative;
 `
-const WIDTH = `${deviceWidth + 150}px`
-const HEIGHT = `${deviceHeight + 150}px`
 
 const StyledMapView = styled(MapView.Animated)`
   position: absolute;
-  width: ${WIDTH};
-  height: ${HEIGHT};
+  width: ${deviceWidth + 150}px;
+  height: ${deviceHeight + 150}px;
 `
 
 // eslint-disable-next-line no-unused-vars
@@ -75,6 +74,26 @@ export default function MapScreen({ navigation }) {
     destination,
     mapView,
     setSearchResult,
+    routeDetails,
+    setRouteDetails,
+    isModalVisible,
+    setModalVisible,
+    parked,
+    setParked,
+    errorInsert,
+    setErrorInsert,
+    isLoadingSave,
+    setIsLoadingSave,
+    isLoadingDirections,
+    setIsLoadingDirections,
+    searchIsActive,
+    setSearchIsActive,
+    currentPosition,
+    setCurrentPosition,
+    heading,
+    setHeading,
+    isDirectionsDetailsVisible,
+    setIsDirectionsDetailsVisible,
   } = useMapContext()
 
   const {
@@ -95,21 +114,8 @@ export default function MapScreen({ navigation }) {
   } = useMapOperations()
 
   const { getInfo, getDirections } = useGeoCoding()
-
   const { isDarkMode } = useDarkMode()
-
-  const [isModalVisible, setModalVisible] = useState(false)
-  const [parked, setParked] = useState(!parkingLocation)
-  const [errorInsert, setErrorInsert] = useState(null)
-  const [isLoadingSave, setIsLoadingSave] = useState(false)
-  const [isLoadingDirections, setIsLoadingDirections] = useState(false)
-  const [searchIsActive, setSearchIsActive] = useState(false)
-  const [routeDetails, setRouteDetails] = useState({ directions: [] })
-  const [currentPosition, setCurrentPosition] = useState(null)
-  const [heading,setHeading] =useState(0)
-  const {createOnlineLocation,isLoadingOnline} = useCreateLocation()
-  const [isDirectionsDetailsVisible, setIsDirectionsDetailsVisible] =
-    useState(false)
+  const { createOnlineLocation, isLoadingOnline } = useCreateLocation()
 
   useEffect(() => {
     // eslint-disable-next-line no-extra-semi
@@ -172,12 +178,7 @@ export default function MapScreen({ navigation }) {
     })()
   }, [destination])
 
-
-
-  // console.log(currentLocation)
-
   const handleRegionChange = (newRegion) => {
-    console.log("Region: ",newRegion)
     const markerIsInCurrentRegion =
       newRegion.latitude >
         pin?.locationPin.latitude - newRegion.latitudeDelta / 2.75 &&
@@ -187,7 +188,6 @@ export default function MapScreen({ navigation }) {
         pin?.locationPin.longitude - newRegion.longitudeDelta / 2.75 &&
       newRegion.longitude <
         pin?.locationPin.longitude + newRegion.longitudeDelta / 2.75
-
 
     setIsArrowVisible(!markerIsInCurrentRegion)
   }
@@ -210,25 +210,21 @@ export default function MapScreen({ navigation }) {
     Keyboard.dismiss()
   }
 
-  
-
-  const handleSave = async () => {
+  const handleSaveLocation = async () => {
     if (!currentLocation && !search) return
     const [latitude, longitude] = currentLocation || search.trim(' ').split(',')
     if (locationName === '' || locationType === '')
       return setErrorInsert('No name provided!')
     setIsLoadingSave(true)
     const info = await getInfo({ latitude, longitude })
-    // console.log(
-    //   'Data to be inserted',
-    //   locationName,
-    //   locationType,
-    //   latitude,
-    //   longitude,
-    //   info
-    // )
     insertData(locationName, locationType, latitude, longitude, info)
-    createOnlineLocation({name:locationName, type: locationType, latitude, longitude, info})
+    createOnlineLocation({
+      name: locationName,
+      type: locationType,
+      latitude,
+      longitude,
+      info,
+    })
     fetchData()
     setLocationInfo(null)
     handleCloseModal()
@@ -247,7 +243,7 @@ export default function MapScreen({ navigation }) {
   const handleMarkerPress = (e) =>
     animateToSpecificLocation(e.nativeEvent.coordinate)
 
-  const saveParked = async () => {
+  const handleSaveParking = async () => {
     vibrate()
     setParked(true)
     const { latitude, longitude } = await locationFetcher()
@@ -279,9 +275,9 @@ export default function MapScreen({ navigation }) {
   const handleGetLocation = () => {
     if (mapView.current) {
       mapView.current.getCamera().then((camera) => {
-        console.log('Camera: ',camera)
-      setHeading(camera.heading)    
-      setCurrentPosition({
+        // console.log('Camera: ',camera)
+        setHeading(camera.heading)
+        setCurrentPosition({
           latitude: camera.center.latitude,
           longitude: camera.center.longitude,
         })
@@ -289,20 +285,20 @@ export default function MapScreen({ navigation }) {
     }
   }
 
-  // console.log('isLoadingSave:', isLoadingSave)
-
   return (
     <MapContaioner>
       <Search
         isModalVisible={isModalVisible}
-        handleSave={handleSave}
+        handleSaveLocation={handleSaveLocation}
         setCurrentLocation={setCurrentLocation}
         errorInsert={errorInsert}
         setIsLoadingSave={setIsLoadingSave}
         searchIsActive={searchIsActive}
         handleCloseModal={handleCloseModal}
       />
+
       <Compass />
+
       {isDirectionsDetailsVisible && (
         <RouteDetails
           routeDetails={routeDetails}
@@ -311,7 +307,7 @@ export default function MapScreen({ navigation }) {
           isLoadingDirections={isLoadingDirections}
           setIsDirectionsDetailsVisible={setIsDirectionsDetailsVisible}
         />
-        )}
+      )}
 
       <StyledMapView
         ref={mapView}
@@ -361,6 +357,7 @@ export default function MapScreen({ navigation }) {
             iconSize={45}
           />
         )}
+
         {parkingLocation && (
           <Pin
             coordinate={parkingLocation}
@@ -370,6 +367,7 @@ export default function MapScreen({ navigation }) {
             iconSize={30}
           />
         )}
+        
         {searchPinLocation && (
           <Pin
             coordinate={searchPinLocation}
@@ -392,15 +390,13 @@ export default function MapScreen({ navigation }) {
 
       {isModalVisible && (
         <ActionForm
-          handleSave={handleSave}
+          handleSaveLocation={handleSaveLocation}
           handleCloseModal={handleCloseModal}
           errorInsert={errorInsert}
           isLoadingSave={isLoadingSave || isLoadingOnline}
           setIsLoadingSave={setIsLoadingSave}
         />
       )}
-
-
 
       <ButtonIcon
         iconName={'locate'}
@@ -423,11 +419,11 @@ export default function MapScreen({ navigation }) {
       <ButtonIcon
         iconName={'car-sport-outline'}
         onPressFunction={locateParked}
-        onLongPressFunction={saveParked}
+        onLongPressFunction={handleSaveParking}
         bgColor={parked ? theme.colors.accent : null}
         bottom={'230px'}
         color={parked ? theme.colors.textWhite : theme.colors.accent}
-        />
+      />
     </MapContaioner>
   )
 }

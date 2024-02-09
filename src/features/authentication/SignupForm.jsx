@@ -6,12 +6,15 @@ import Input from '../../ui/Input'
 import ButtonText from '../../ui/ButtonText'
 import DismissKeyboard from '../../ui/DismissKeyboard'
 import InputContainer from '../../ui/InputContainer'
+import { useSignup } from './useSignup'
 
 export default function SignupForm() {
+  const { signup, isLoading } = useSignup()
   const {
     control,
     handleSubmit,
     getValues,
+    reset,
     formState: { errors },
   } = useForm({
     defaultValues: {
@@ -21,9 +24,14 @@ export default function SignupForm() {
       repeatPassword: '',
     },
   })
-  const onSubmit = (data) => {
+  const onSubmit = ({ name, email, password }) => {
     Keyboard.dismiss()
-    console.log(data)
+    signup(
+      { name, email, password },
+      {
+        onSettled: reset,
+      }
+    )
   }
 
   return (
@@ -32,7 +40,7 @@ export default function SignupForm() {
         <Input
           type='name'
           control={control}
-          name='ename'
+          name='name'
           iconName='person-outline'
           placeholder='Name'
           rules={{
@@ -87,6 +95,8 @@ export default function SignupForm() {
           variant='primary'
           title='Submit'
           onPressFunction={handleSubmit(onSubmit)}
+          isLoading={isLoading}
+          disabled={isLoading}
         >
           Sign Up
         </ButtonText>

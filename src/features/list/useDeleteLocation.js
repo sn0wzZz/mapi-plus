@@ -4,7 +4,7 @@ import Toast from 'react-native-toast-message'
 
 export default function useDeleteLocation() {
   const queryClient = useQueryClient()
-  const { mutate: deleteOnlineLocations, isLoading: isLoadingOnline } = useMutation({
+  const { mutate: deleteOnlineLocations, isPending: isLoadingDel } = useMutation({
     mutationFn: (ids) => ids.forEach((id) => deletLocation(id)),
     onSuccess: () => {
       Toast.show({
@@ -24,7 +24,7 @@ export default function useDeleteLocation() {
       }),
   })
 
-  return { deleteOnlineLocations, isLoadingOnline }
+  return { deleteOnlineLocations, isLoadingDel }
 }
 
 

@@ -18,6 +18,7 @@ import { getLocations } from '../../services/apiLocations'
 import { useQuery } from '@tanstack/react-query'
 import { useIsFocused } from '@react-navigation/native'
 import useDeleteLocation from './useDeleteLocation'
+import Logout from '../authentication/Logout'
 
 const ListContainer = styled(SafeAreaView)`
   flex: 1;
@@ -48,7 +49,7 @@ export default function ListScreen({ navigation }) {
   const [selectedLocations, setSelectedLocations] = useState([])
   const { variant } = useDarkMode()
   const { marker, data, setPin, isLoading } = useMapContext()
-  const {deleteOnlineLocations} = useDeleteLocation()
+  const {deleteOnlineLocations, isLoadingDel} = useDeleteLocation()
 
   const { createTable, deleteData, fetchData, deleteDataById } = useDbContext()
 
@@ -158,8 +159,10 @@ export default function ListScreen({ navigation }) {
         onLongPressFunction={EmptyDBAlert}
         bottom={'20px'}
         color={variant.error}
-        disabled={isLoadingOnline}
+        disabled={isLoadingDel}
+        isLoading={isLoadingDel}
       />
+
       {selectedLocations[0] && (
         <ButtonIcon
           iconName={'close'}

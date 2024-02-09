@@ -1,20 +1,21 @@
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { login as loginApi } from '../../services/apiAuth'
 import { useNavigation } from '@react-navigation/native'
 import Toast from 'react-native-toast-message'
 
 
 export default function useLogin() {
-  const navigation = useNavigation()
+  const queryClient = useQueryClient()
 
   const {mutate: login, isPending} =useMutation({
     mutationFn: ({email, password})=> loginApi({email, password}),
     onSuccess: (user)=>{
-      // console.log(user)
-      // navigation.navigate('MainRoutes')
+
+      // console.log(user.user)
+      queryClient.setQueryData(['user'], user.user)
     },
     onError: err=>{
-    console.log('💥',err.message)
+    // console.log('💥',err.message)
     Toast.show({
       type: 'error',
       text1:'Provided credentials are incorrect!',

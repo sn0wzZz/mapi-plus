@@ -8,6 +8,7 @@ export default {
     orientation: 'portrait',
     icon: './assets/icon.png',
     userInterfaceStyle: 'light',
+    scheme: 'com.supabase',
     splash: {
       image: './assets/splash.png',
       resizeMode: 'contain',

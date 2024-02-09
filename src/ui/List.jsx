@@ -1,4 +1,4 @@
-import { FlatList, SafeAreaView, Text, View } from 'react-native'
+import { ActivityIndicator, FlatList, SafeAreaView, Text, View } from 'react-native'
 import styled from 'styled-components'
 
 import LocationItem from '../features/list/LocationItem'
@@ -56,8 +56,8 @@ export default function List({
   
   if (isLoading)
     return (
-      <SafeAreaView>
-        <Spinner visible={isLoading} color={theme.colors.accent} />
+      <SafeAreaView style={{height: '80%', alignItems: 'center', justifyContent: 'center', display: 'flex'}} >
+        <ActivityIndicator size={'large'} color={theme.colors.accent} />
       </SafeAreaView>
     )
     

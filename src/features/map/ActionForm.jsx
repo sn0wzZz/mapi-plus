@@ -117,7 +117,7 @@ export default function ActionForm({
   isGeoCoord,
   searchPin,
   handleCloseModal,
-  handleSave,
+  handleSaveLocation,
   errorInsert,
   setShowOnMapClicked,
   setIsLoadingSave,
@@ -139,7 +139,7 @@ export default function ActionForm({
   const { animateToSpecificLocation } = useMapOperations()
   
   const  isKeyboardVisible  = useKeyboardVisibility()
-  console.log('Is keyboard visible:', isKeyboardVisible)
+  // console.log('Is keyboard visible:', isKeyboardVisible)
 
 
   const handelShow = () => {
@@ -202,7 +202,7 @@ export default function ActionForm({
           bgColor={variant.accent}
           underlay={variant.accentActive}
           onPressFunction={() => {
-            handleSave()
+            handleSaveLocation()
           }}
         />
         <ButtonIcon

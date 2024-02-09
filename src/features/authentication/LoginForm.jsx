@@ -8,24 +8,22 @@ import useLogin from './useLogin'
 import theme from '../../theme'
 
 export default function LoginForm() {
-  const {login, isPending} = useLogin()
+  const { login, isPending } = useLogin()
   const {
     control,
     handleSubmit,
     formState: { errors },
   } = useForm({
     defaultValues: {
-      email: 'hello@email.com',
+      email: 'fake@email.com',
       password: '123456789',
     },
   })
-    const onSubmit = (data) => {
-      // if(!email||!password) return
-      Keyboard.dismiss()
-      login(data)
-    }
-
-
+  const onSubmit = (data) => {
+    // if(!email||!password) return
+    Keyboard.dismiss()
+    login(data)
+  }
 
   return (
     <DismissKeyboard>
@@ -63,16 +61,10 @@ export default function LoginForm() {
           variant='primary'
           title='Submit'
           onPressFunction={handleSubmit(onSubmit)}
+          isLoading={isPending}
+          disabled={isPending}
         >
-          {!isPending ? (
-            'Login'
-          ) : (
-            <ActivityIndicator
-              animating={true}
-              color={theme.colors.backgroundTrSolid}
-              size={29}
-            />
-          )}
+          Login
         </ButtonText>
         {/* <ButtonText title="Submit">Sign up with Google </ButtonText> */}
       </InputContainer>

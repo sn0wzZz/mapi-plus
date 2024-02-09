@@ -33,23 +33,16 @@ const StyledText = styled(Text)`
 
 export default function RouteDetails({
   routeDetails,
-  setRouteDetails,
   isLoadingDirections,
   searchIsActive,
-  setIsDirectionsDetailsVisible,
 }) {
   const { distance, duration } = routeDetails
   const { variant } = useDarkMode()
-  const { setPin, currentLocation } = useMapContext()
+  const { currentLocation, clearRoute } = useMapContext()
   const  isKeyboardVisible  = useKeyboardVisibility()
-  console.log(isKeyboardVisible, Boolean(currentLocation))
+  // console.log(isKeyboardVisible, Boolean(currentLocation))
 
-  const handlePress = () => {
-    setRouteDetails({ directions: [], distance: null, duration: null })
-    setIsDirectionsDetailsVisible(false)
-    setPin(null)
-  }
-
+  
   return (
     <Box variant={variant} isKeyboardVisible={isKeyboardVisible} currentLocation={currentLocation} searchIsActive={searchIsActive}>
       {isLoadingDirections ? (
@@ -70,7 +63,7 @@ export default function RouteDetails({
             </StyledText>
           </View>
           <ButtonIcon
-            onPressFunction={handlePress}
+            onPressFunction={clearRoute}
             iconName={'close'}
             color={theme.colors.textWhite}
             bgColor={variant.error}

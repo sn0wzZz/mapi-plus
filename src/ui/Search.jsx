@@ -52,7 +52,7 @@ function isGeoCoord(inputString) {
 
 export default function Search({
   isModalVisible,
-  handleSave,
+  handleSaveLocation,
   errorInsert,
   setIsLoadingSave,
   searchIsActive,
@@ -173,7 +173,7 @@ export default function Search({
         <ActionForm
           isGeoCoord={isGeoCoord}
           searchPin={searchPin}
-          handleSave={handleSave}
+          handleSaveLocation={handleSaveLocation}
           errorInsert={errorInsert}
           setShowOnMapClicked={setShowOnMapClicked}
           setIsLoadingSave={setIsLoadingSave}
