@@ -2,6 +2,7 @@ import { ActivityIndicator, Text, TouchableOpacity } from 'react-native'
 
 import styled, { css } from 'styled-components/native'
 import theme from '../theme'
+import { useDarkMode } from '../contexts/DarkModeContext'
 
 const variants = {
   primary: css`
@@ -21,14 +22,19 @@ const StyledButton = styled(TouchableOpacity)`
   height: ${(props) => props.size}px;
   z-index: 1;
   ${(props) => variants[props.variant]}
-  ${props=> props.style}
+  ${(props) =>
+    props.active
+      ? `background-color: ${props.varTheme.accent}`
+      : `background-color: ${props.varTheme.background}`};
+  ${(props) => props.style}
 `
 const StyledText = styled(Text)`
   color: ${(props) =>
-    props.variant === 'primary' ? 'black' : `${theme.colors.accent}`};
+    props.variant === 'primary' ? 'black' : `${props.varTheme.accent}`};
+  color: ${(props) => (props.active ? 'black' : `${props.varTheme.accent}`)};
   text-align: center;
   font-weight: bold;
-  font-size: 18px;
+  font-size: ${(props) => props.fontSize}px;
   ${(props) => props.textStyle}
 `
 
@@ -41,9 +47,12 @@ export default function ButtonText({
   title,
   isLoading,
   disabled,
-  size=55,
-  style
+  size = 55,
+  fontSize = 18,
+  style,
+  active,
 }) {
+  const { variant: varTheme } = useDarkMode()
   return (
     <StyledButton
       variant={variant}
@@ -53,6 +62,8 @@ export default function ButtonText({
       title={title}
       size={size}
       style={style}
+      active={active}
+      varTheme={varTheme}
     >
       {isLoading ? (
         <ActivityIndicator
@@ -61,7 +72,13 @@ export default function ButtonText({
           size={29}
         />
       ) : (
-        <StyledText variant={variant} textStyle={textStyle}>
+        <StyledText
+          variant={variant}
+          textStyle={textStyle}
+          active={active}
+          fontSize={fontSize}
+          varTheme={varTheme}
+        >
           {children}
         </StyledText>
       )}

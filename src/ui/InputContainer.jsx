@@ -8,5 +8,4 @@ export default InputContainer = styled(View)`
   padding-bottom: 300px;
   gap: 20px;
   align-self: center;
-  /* background-color: red; */
 `

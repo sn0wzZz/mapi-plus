@@ -3,51 +3,50 @@ import styled from 'styled-components/native'
 import { useDarkMode } from '../contexts/DarkModeContext'
 import theme from '../theme'
 import useKeyboardVisibility from '../utils/useKeyboardVisibility'
-import BottomSheet, { BottomSheetBackdrop } from '@gorhom/bottom-sheet'
+import BottomSheet, { BottomSheetBackdrop, BottomSheetScrollView, useBottomSheet } from '@gorhom/bottom-sheet'
 import { useCallback, useMemo, useRef } from 'react'
-import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import { useUserContext } from '../contexts/UserContext'
 import { deviceHeight } from '../utils/helpers'
 import { Platform } from 'react-native'
+import { useMapContext } from '../contexts/MapContext'
 
-const ModalBox = styled(GestureHandlerRootView)`
-  /* background: ${(props) => props.variant.overlay}; */
+const ModalBox = styled(View)`
   position: absolute;
   padding: 10px;
   width: 100%;
   height: 100%;
   z-index: 9999;
-  /* left: 10px; */
-  /* bottom: ${(props) => (props.isKeyboardVisible ? '20px' : '90px')}; */
   border-radius: ${theme.radiuses.lg};
 `
 
 export default function Modal({ children }) {
   const { variant } = useDarkMode()
-  const { setUserPanelVisible } = useUserContext()
+  const { setAccontPanelVisible, setShownProfile, setUserMatchesVisible } =
+    useUserContext()
   const isKeyboardVisible = useKeyboardVisibility()
+  const { setCalloutIsPressed } = useMapContext()
 
-  const snapPoints = useMemo(() => ['50%'], [])
   const bottomSheetRef = useRef(null)
+  const snapPoints = useMemo(() => ['50%'], [])
 
-  const handleClosePress = () => bottomSheetRef.current?.close()
   // renders
   const renderBackdrop = useCallback(
     (props) => (
       <BottomSheetBackdrop
         {...props}
-        disappearsOnIndex={-7}
-        appearsOnIndex={3}
+        disappearsOnIndex={-1}
+        appearsOnIndex={0}
       />
     ),
     []
   )
 
   return (
-    <ModalBox isKeyboardVisible={isKeyboardVisible} variant={variant}>
+    <ModalBox>
       <BottomSheet
         ref={bottomSheetRef}
         backdropComponent={renderBackdrop}
+        enableDynamicSizing={false}
         topInset={
           isKeyboardVisible
             ? Platform.Version === 33
@@ -62,9 +61,15 @@ export default function Modal({ children }) {
         handleIndicatorStyle={{ backgroundColor: variant.textSecondary }}
         style={{ borderRadius: 45, overflow: 'hidden' }}
         enablePanDownToClose
-        onClose={() => setUserPanelVisible((cur) => !cur)}
+        onClose={() => {
+          setAccontPanelVisible(false)
+          setCalloutIsPressed(false)
+          setUserMatchesVisible(false)
+          setShownProfile(null)
+        }}
         keyboardBlurBehavior={'restore'}
       >
+
         {children}
       </BottomSheet>
     </ModalBox>

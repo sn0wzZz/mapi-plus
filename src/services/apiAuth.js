@@ -1,4 +1,5 @@
 import supabase from './supabase'
+import { SUPABASE_URL } from '@env'
 
 export async function signup({ name, email, password }) {
   const { data, error } = await supabase.auth.signUp({
@@ -8,13 +9,13 @@ export async function signup({ name, email, password }) {
       data: {
         name,
         avatar: '',
-        links: [],
+        links: '',
       },
     },
   })
 
   if (error) {
-    throw new Error(error.message)
+    throw new Error(error)
   }
 
   return data
@@ -30,7 +31,6 @@ export async function login({ email, password }) {
     throw new Error(error.message)
   }
 
-  // console.log('lgndata',data)
   return data
 }
 
@@ -60,19 +60,18 @@ export async function updateUser({ name, password, links, avatar }) {
 
   const { error: storageError } = await supabase.storage
     .from('avatars')
-    .upload(fileName, avatar, {contentType: 'image/png'})
+    .upload(fileName, avatar, { contentType: 'image/png' })
 
   if (storageError) throw new Error(storageError.message)
 
   const { data: updatedUser, error: error2 } = supabase.auth.updateUser({
     data: {
-      avatar: `https://uanzmrotizxlidqcjovq.supabase.co/storage/v1/object/public/avatars/${fileName}`,
+      avatar: `${SUPABASE_URL}/storage/v1/object/public/avatars/${fileName}`,
     },
   })
 
   if (error2) throw new Error(error2.message)
   return updatedUser
-
 }
 
 export async function logout() {

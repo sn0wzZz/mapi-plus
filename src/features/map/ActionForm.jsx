@@ -18,6 +18,7 @@ import theme from '../../theme'
 import useKeyboardVisibility from '../../utils/useKeyboardVisibility'
 import { deviceHeight } from '../../utils/helpers'
 
+import { items } from '../../misc'
 
 const height = 0.09 * deviceHeight
 
@@ -94,25 +95,6 @@ const ErrorMessage = styled(Text)`
   padding: 2px 11px;
 `
 
-const items = [
-  {
-    label: 'Location 📍',
-    value: 'location 📍',
-  },
-  {
-    label: 'Secret Location 🔐',
-    value: 'secret location 🔐',
-  },
-  {
-    label: 'Parking 🚘',
-    value: 'parking 🚘',
-  },
-  {
-    label: 'Fitness & Health 💪',
-    value: 'fitness & Health 💪',
-  },
-]
-
 export default function ActionForm({
   isGeoCoord,
   searchPin,
@@ -137,10 +119,9 @@ export default function ActionForm({
     setCurrentLocation,
   } = useMapContext()
   const { animateToSpecificLocation } = useMapOperations()
-  
-  const  isKeyboardVisible  = useKeyboardVisibility()
-  // console.log('Is keyboard visible:', isKeyboardVisible)
 
+  const isKeyboardVisible = useKeyboardVisibility()
+  // console.log('Is keyboard visible:', isKeyboardVisible)
 
   const handelShow = () => {
     setSearchPinLocation(searchPin)
@@ -186,9 +167,9 @@ export default function ActionForm({
         {isGeoCoord && (
           <ButtonIcon
             iconName='map'
-            color={theme.colors.textWhite}
-            bgColor={theme.colors.secondaryAccent}
-            underlay={theme.colors.secondaryAccentActive}
+            color={theme.colors.text}
+            bgColor={theme.colors.accentSecondary}
+            underlay={theme.colors.accentSecondaryActive}
             style={clearButton}
             onPressFunction={(e) => {
               handelShow(e)
@@ -197,7 +178,7 @@ export default function ActionForm({
         )}
         <ButtonIcon
           iconName='save'
-          color={theme.colors.textWhite}
+          color={theme.colors.text}
           style={clearButton}
           bgColor={variant.accent}
           underlay={variant.accentActive}
@@ -207,7 +188,7 @@ export default function ActionForm({
         />
         <ButtonIcon
           iconName='close'
-          color={theme.colors.textWhite}
+          color={theme.colors.text}
           style={clearButton}
           bgColor={theme.colors.error}
           underlay={theme.colors.errorActive}

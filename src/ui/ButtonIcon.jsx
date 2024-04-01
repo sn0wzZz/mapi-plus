@@ -1,14 +1,19 @@
-import { ActivityIndicator, TouchableHighlight, View } from 'react-native'
+import {
+  ActivityIndicator,
+  TouchableHighlight,
+  View,
+  Linking,
+  Text,
+} from 'react-native'
 import styled from 'styled-components/native'
 
 import { useDarkMode } from '../contexts/DarkModeContext'
-
 import theme from '../theme'
 import Icon from 'react-native-vector-icons/Ionicons'
+import IconFA from 'react-native-vector-icons/FontAwesome6'
 
 const StyledTouchableHighLight = styled(TouchableHighlight)`
   position: absolute;
-  /* flex: 1; */
   justify-content: center;
   align-items: center;
   background-color: ${(props) =>
@@ -23,6 +28,28 @@ const StyledTouchableHighLight = styled(TouchableHighlight)`
   ${(props) => props.style}
 `
 
+const Bubble = styled(Text)`
+  padding: 1px 7px;
+  position: absolute;
+  border-radius: ${theme.radiuses.full};
+  color: ${(props) => props.variant.background};
+  background: ${(props) => props.variant.accent};
+  top: -20px;
+  left: 20px;
+`
+
+const socialMedias = [
+  'facebook',
+  'twitter',
+  'snapchat',
+  'instagram',
+  'reddit',
+  'tumblur',
+  'github',
+  'youtube',
+  'vk',
+]
+
 export default function ButtonIcon({
   iconName,
   onPressFunction,
@@ -36,32 +63,54 @@ export default function ButtonIcon({
   left,
   disabled,
   isLoading,
-  size=22,
-  bgSize=60,
-  loaderColor
+  size = 22,
+  bgSize = 60,
+  loaderColor,
+  url,
+  bubble,
 }) {
   const { variant } = useDarkMode()
+
+  const handleOpenLink = async () => {
+    if (url) {
+      await Linking.openURL(url)
+    }
+  }
+
+  const matchingLink = socialMedias.find((media) =>
+    url?.toLowerCase().includes(media)
+  )
+  const icon = matchingLink ? matchingLink==='twitter'? `x-twitter`:`logo-${matchingLink}` : 'earth-outline'
+
   return (
-    <StyledTouchableHighLight
-      disabled={disabled}
-      variant={variant}
-      underlayColor={underlay || variant.underlay}
-      top={top}
-      bottom={bottom}
-      bgColor={bgColor}
-      onPress={onPressFunction}
-      onLongPress={onLongPressFunction}
-      left={left}
-      style={style}
-      bgSize={bgSize}
-    >
-      <View>
-        {isLoading ? (
-          <ActivityIndicator animating={true} color={loaderColor||theme.colors.accent} />
-        ) : (
-          <Icon name={iconName} size={size} color={color} />
-        )}
-      </View>
-    </StyledTouchableHighLight>
+    <>
+      <StyledTouchableHighLight
+        disabled={disabled}
+        variant={variant}
+        underlayColor={underlay || variant.underlay}
+        top={top}
+        bottom={bottom}
+        bgColor={bgColor}
+        onPress={onPressFunction || handleOpenLink}
+        onLongPress={onLongPressFunction}
+        left={left}
+        style={style}
+        bgSize={bgSize}
+      >
+        <View>
+          {bubble && <Bubble variant={variant}>{bubble}</Bubble>}
+          {isLoading ? (
+            <ActivityIndicator
+              animating={true}
+              color={loaderColor || theme.colors.accent}
+            />
+          ) : matchingLink === 'twitter' ? (
+            <IconFA name={iconName || icon} size={18} color={color} />
+          ) : (
+            <Icon name={iconName || icon} size={size} color={color} />
+          )}
+        </View>
+      </StyledTouchableHighLight>
+    </>
   )
 }

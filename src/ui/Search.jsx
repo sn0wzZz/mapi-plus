@@ -10,7 +10,6 @@ import { useDarkMode } from '../contexts/DarkModeContext'
 import List from './List'
 import ActionForm from '../features/map/ActionForm'
 import useGeoCoding from '../utils/useGeoCoding'
-import useKeyboardVisibility from '../utils/useKeyboardVisibility'
 import { debounce, deviceHeight } from '../utils/helpers'
 
 const SearchContainer = styled(View)`
@@ -19,7 +18,6 @@ const SearchContainer = styled(View)`
   left: 10px;
   flex: 1;
   flex-direction: row;
-  /* background: #fff; */
   background: ${(props) => props.variant.background};
   border-radius: ${theme.radiuses.full};
   align-items: center;
@@ -76,27 +74,17 @@ export default function Search({
   const [searchPin, setSearchPin] = useState(null)
   const [showOnMapClicked, setShowOnMapClicked] = useState(false)
 
-  const  isKeyboardVisible  = Keyboard.isVisible()
-  // console.log('Is keyboard visible: ', isKeyboardVisible)
+  const isKeyboardVisible = Keyboard.isVisible()
 
   const debouncedGetSuggestions = debounce(async (queryStr) => {
     const result = await getSuggestions(queryStr)
-    // console.log(result)
     setSearchResult(result)
-  }, 500) // Adjust the delay as needed
+  }, 500)
 
   useEffect(() => {
-    // console.log(
-    //   'Search valuses:',
-    //   isGeoCoord(search),
-    //   isAddress(search),
-    //   inputIsFocused,
-    //   searchIsGeoCoords
-    // )
-
     if (isGeoCoord(search)) {
       setSearchIsGeoCoords(isGeoCoord(search))
-      setCurrentLocation(null)
+      setCurrentLocation(search.trim(' ').split(','))
       const [latitude, longitude] = search.trim(' ').split(',')
       const numLat = parseFloat(latitude)
       const numLng = parseFloat(longitude)
@@ -121,7 +109,7 @@ export default function Search({
   )
 
   // console.log(finalData)
-  
+
   return (
     <>
       <SearchContainer variant={variant}>
@@ -164,6 +152,7 @@ export default function Search({
               isKeyboardVisible ? (searchIsGeoCoords ? '51%' : '67%') : '70%'
             }
             itemBg={variant.background}
+            actualData={data}
             data={finalData}
           />
         </SearchList>

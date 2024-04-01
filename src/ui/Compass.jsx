@@ -6,7 +6,6 @@ import { Magnetometer } from 'expo-sensors'
 
 import { useDarkMode } from '../contexts/DarkModeContext'
 
-
 const CompassContainer = styled(View)`
   position: absolute;
   top: 110px;
@@ -81,82 +80,80 @@ const magneticDeclination = -10
 export default function Compass() {
   const { variant } = useDarkMode()
   const [heading, setHeading] = useState(0)
-    const [smoothedMagnetometerData, setSmoothedMagnetometerData] = useState({
-      x: 0,
-      y: 0,
-    })
-    const alpha = 0.9 // Smoothing factor (adjust as needed)
+  const [smoothedMagnetometerData, setSmoothedMagnetometerData] = useState({
+    x: 0,
+    y: 0,
+  })
 
+  useEffect(() => {
+    const subscribeToMagnetometer = async () => {
+      const magnetometerAvailable = await Magnetometer.isAvailableAsync()
 
+      if (magnetometerAvailable) {
+        const angles = []
+        Magnetometer.addListener((data) => {
+          const { x, y } = data
 
-    useEffect(() => {
-      const subscribeToMagnetometer = async () => {
-        const magnetometerAvailable = await Magnetometer.isAvailableAsync()
+          // Compute the angle
+          let angle = 0
+          if (Math.atan2(y, x) >= 0) {
+            angle = Math.atan2(y, x) * (180 / Math.PI) + 10
+          } else {
+            angle = (Math.atan2(y, x) + 2 * Math.PI) * (180 / Math.PI) + 10
+          }
 
-        if (magnetometerAvailable) {
-          Magnetometer.addListener((data) => {
-            const { x, y } = data
+          // Adjust the angle for magnetic declination
+          const adjustedAngle = angle + magneticDeclination
 
-            // Apply the low-pass filter to magnetometer data
-            const smoothedX =
-              alpha * x + (1 - alpha) * smoothedMagnetometerData.x
-            const smoothedY =
-              alpha * y + (1 - alpha) * smoothedMagnetometerData.y
+          // Add the adjusted angle to the array
+          angles.push(
+            adjustedAngle - 90 >= 0 ? adjustedAngle - 90 : 271 + adjustedAngle
+          )
 
-            // Update the smoothed data
-            setSmoothedMagnetometerData({ x: smoothedX, y: smoothedY })
-            
-              let angle = 0
-                if (Math.atan2(y, x) >= 0) {
-                  angle = Math.atan2(y, x) * (180 / Math.PI)
-                } else {
-                  angle = (Math.atan2(y, x) + 2 * Math.PI) * (180 / Math.PI)
-                }
+          // Limit the number of angles collected
+          const maxAngles = 5
+          if (angles.length > maxAngles) {
+            angles.shift() // Remove the oldest angle if the array exceeds the limit
+          }
 
+          // Calculate the average angle
+          const averageAngle =
+            angles.reduce((sum, angle) => sum + angle, 0) / angles.length
 
-            // const angle = Math.atan2(smoothedX, smoothedY) * (180 / Math.PI)
-            // const angle =
-            //   (Math.atan2(smoothedX, smoothedY) + 2 * Math.PI) * (180 / Math.PI)
+          // Update the heading with the average angle
+          setHeading(averageAngle)
+        })
 
-            // Adjust the angle for magnetic declination
-            const adjustedAngle = angle + magneticDeclination
-            setHeading(
-              adjustedAngle - 90 >= 0
-                ? adjustedAngle - 80
-                : 281 + adjustedAngle
-            )
-          })
-
-          Magnetometer.setUpdateInterval(1000)
-        }
-      }
-
-      subscribeToMagnetometer()
-
-      return () => {
-        Magnetometer.removeAllListeners()
-      }
-    }, [])
-
-    const direction = (degree) => {
-      if (degree >= 22.5 && degree < 67.5) {
-        return 'NE'
-      } else if (degree >= 67.5 && degree < 112.5) {
-        return 'E'
-      } else if (degree >= 112.5 && degree < 157.5) {
-        return 'SE'
-      } else if (degree >= 157.5 && degree < 202.5) {
-        return 'S'
-      } else if (degree >= 202.5 && degree < 247.5) {
-        return 'SW'
-      } else if (degree >= 247.5 && degree < 292.5) {
-        return 'W'
-      } else if (degree >= 292.5 && degree < 337.5) {
-        return 'NW'
-      } else {
-        return 'N'
+        Magnetometer.setUpdateInterval(500)
       }
     }
+
+    subscribeToMagnetometer()
+
+    return () => {
+      Magnetometer.removeAllListeners()
+    }
+  }, [])
+
+  const direction = (degree) => {
+    if (degree >= 22.5 && degree < 67.5) {
+      return 'NE'
+    } else if (degree >= 67.5 && degree < 112.5) {
+      return 'E'
+    } else if (degree >= 112.5 && degree < 157.5) {
+      return 'SE'
+    } else if (degree >= 157.5 && degree < 202.5) {
+      return 'S'
+    } else if (degree >= 202.5 && degree < 247.5) {
+      return 'SW'
+    } else if (degree >= 247.5 && degree < 292.5) {
+      return 'W'
+    } else if (degree >= 292.5 && degree < 337.5) {
+      return 'NW'
+    } else {
+      return 'N'
+    }
+  }
 
   return (
     <CompassContainer>

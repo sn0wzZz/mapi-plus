@@ -70,7 +70,7 @@ export default function PointerArrow({
           ],
         }}
       >
-        <Icon name='caret-up' size={33} color={theme.colors.secondaryAccent} />
+        <Icon name='caret-up' size={33} color={theme.colors.accentSecondary} />
       </AnimatedIcon>
     </StyledPointerArrow>
   )

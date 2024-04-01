@@ -9,12 +9,14 @@ const SplashBox = styled(SafeAreaView)`
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: ${props=>props.variant.backgroundTrSolid};
+  background-color: ${(props) => props.variant.backgroundTrSolid};
 `
 
 export default function Splash() {
-  const {variant}=useDarkMode()
-  return <SplashBox variant={variant}>
-    <Spinner size={50}/>
-  </SplashBox>
+  const { variant } = useDarkMode()
+  return (
+    <SplashBox variant={variant}>
+      <Spinner size={50} />
+    </SplashBox>
+  )
 }

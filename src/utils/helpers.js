@@ -1,6 +1,9 @@
 import { Dimensions } from 'react-native'
 import { Alert } from 'react-native'
 
+export const deviceHeight = Dimensions.get('window').height
+export const deviceWidth = Dimensions.get('window').width
+
 export function debounce(func, delay) {
   let timeoutId
   return function (...args) {
@@ -29,11 +32,7 @@ export function metersToKilometers(meters) {
   return `${kilometers.toFixed(2)} km`
 }
 
-
-export const deviceHeight = Dimensions.get('window').height
-export const deviceWidth = Dimensions.get('window').width
-
-export function AlertTemplate(title, question, onPress) {
+export function AlertTemplate(title, question, fn) {
   Alert.alert(title, question, [
     {
       text: 'Cancel',
@@ -42,7 +41,45 @@ export function AlertTemplate(title, question, onPress) {
     },
     {
       text: 'OK',
-      onPress: onPress,
+      onPress: fn,
     },
   ])
+}
+
+export const filterData = (data, filterValue, personal, userId) => {
+  return data?.filter((location) => {
+    if (filterValue === '*') {
+      return !personal || location.publisher_id === userId
+    } else if (filterValue === 'location 📍') {
+      return (
+        location.type === 'Location 📍' &&
+        (!personal || location.publisher_id === userId)
+      )
+    } else if (filterValue === 'secret location 🔐') {
+      return (
+        location.type === 'secret location 🔐' &&
+        (!personal || location.publisher_id === userId)
+      )
+    } else if (filterValue === 'parking 🚘') {
+      return (
+        location.type === 'parking 🚘' &&
+        (!personal || location.publisher_id === userId)
+      )
+    } else if (filterValue === 'fitness & Health 💪') {
+      return (
+        location.type === 'fitness & Health 💪' &&
+        (!personal || location.publisher_id === userId)
+      )
+    } else {
+      return true
+    }
+  })
+}
+
+
+export const sortByDate = (data, sorted) => {
+  const comparator = sorted
+    ? (a, b) => new Date(a.created_at) - new Date(b.created_at)
+    : (a, b) => new Date(b.created_at) - new Date(a.created_at)
+  return data?.slice().sort(comparator)
 }

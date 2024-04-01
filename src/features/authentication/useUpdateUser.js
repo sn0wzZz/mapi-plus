@@ -14,7 +14,7 @@ export function useUpdateUser() {
       //   text2: 'Latest data avilable!',
       // })
       // console.log('newUser', user.user.user_metadata.links)
-      queryClient.invalidateQueries({ queryKey: ['user'] })
+      queryClient.invalidateQueries({ queryKey: ['users'] })
     },
     onError: (err) =>
       Toast.show({

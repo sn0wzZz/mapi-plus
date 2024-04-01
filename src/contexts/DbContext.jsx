@@ -21,13 +21,8 @@ function DbProvider({ children }) {
         type TEXT,
         latitude TEXT,
         longitude TEXT,
-        info TEXT
-      );
-      
-      CREATE TABLE IF NOT EXISTS parking (
-        id INTEGER PRIMARY KEY,
-        latitude TEXT,
-        longitude TEXT
+        info TEXT,
+        created_at TIMESTAMP
       );
       `,
         (_, results) => {
@@ -55,8 +50,8 @@ function DbProvider({ children }) {
   const insertData = (name, type, latitude, longitude, info) => {
     db.transaction((tx) => {
       tx.executeSql(
-        'INSERT INTO locations (name, type, latitude, longitude, info) VALUES (?, ?, ?, ?, ?);',
-        [name, type, latitude, longitude, info],
+        'INSERT INTO locations (name, type, latitude, longitude, info, created_at) VALUES (?, ?, ?, ?, ?,?);',
+        [name, type, latitude, longitude, info, Date.now()],
         (_, results) => {
           console.log('Successfully inserted', results.rowsAffected)
         },

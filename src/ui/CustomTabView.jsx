@@ -8,13 +8,14 @@ export default function CustomTabView({
   renderScene,
   tabRoutes,
   position,
-  marginTop= 0 ,
-  width= 134.5
+  marginTop = 0,
+  width = 134.5,
 }) {
   const isKeyboardVisible = useKeyboardVisibility()
   const [index, setIndex] = useState(0)
   const [routes] = useState(tabRoutes)
   const { variant } = useDarkMode()
+
   return (
     <TabView
       style={{
@@ -36,7 +37,7 @@ export default function CustomTabView({
             display: isKeyboardVisible ? 'none' : '',
             backgroundColor: variant.background,
             borderRadius: 99,
-            marginBottom: 40,
+            marginBottom: 20,
             maxWidth: width,
             width: '100%',
             alignSelf: 'center',
@@ -50,13 +51,11 @@ export default function CustomTabView({
               <TouchableOpacity
                 style={{
                   padding: 10,
-                  backgroundColor: focused ? variant.accent : 'transparent', // Change the background color based on focus
+                  backgroundColor: focused ? variant.accent : 'transparent',
                   borderRadius: 99,
                 }}
                 onPress={() => {
                   props.jumpTo(route.key)
-                  // Handle tab press
-                  // You may want to use `props.jumpTo(route.key)` to switch to the corresponding tab
                 }}
               >
                 <Text

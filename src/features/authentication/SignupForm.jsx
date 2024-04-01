@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form'
 import Input from '../../ui/Input'
 
 import ButtonText from '../../ui/ButtonText'
-import DismissKeyboard from '../../ui/DismissKeyboard'
+import DismissKeyboard from '../../ui/DismissKeyboardView'
 import InputContainer from '../../ui/InputContainer'
 import { useSignup } from './useSignup'
 
@@ -25,13 +25,14 @@ export default function SignupForm() {
     },
   })
   const onSubmit = ({ name, email, password }) => {
-    Keyboard.dismiss()
+    console.log(name,email,password)
     signup(
       { name, email, password },
       {
         onSettled: reset,
       }
-    )
+      )
+      Keyboard.dismiss()
   }
 
   return (
@@ -97,6 +98,7 @@ export default function SignupForm() {
           onPressFunction={handleSubmit(onSubmit)}
           isLoading={isLoading}
           disabled={isLoading}
+          active={true}
         >
           Sign Up
         </ButtonText>

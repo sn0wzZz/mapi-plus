@@ -1,10 +1,12 @@
+import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import { MapProvider } from './src/contexts/MapContext'
 import { DarkModeProvider } from './src/contexts/DarkModeContext'
 import { DbProvider } from './src/contexts/DbContext'
 
-import TabNav from './src/features/navigation/TabNav'
+import Navbar from './src/features/navigation/Navbar'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { UserProvider } from './src/contexts/UserContext'
+import { ListContextProvider } from './src/contexts/ListContext'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -19,12 +21,15 @@ export default function App() {
     <QueryClientProvider client={queryClient}>
       <DarkModeProvider>
         <UserProvider>
-
-        <MapProvider>
-          <DbProvider>
-            <TabNav />
-          </DbProvider>
-        </MapProvider>
+          <MapProvider>
+            <ListContextProvider>
+              <DbProvider>
+                <GestureHandlerRootView>
+                  <Navbar />
+                </GestureHandlerRootView>
+              </DbProvider>
+            </ListContextProvider>
+          </MapProvider>
         </UserProvider>
       </DarkModeProvider>
     </QueryClientProvider>

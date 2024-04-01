@@ -10,7 +10,9 @@ export async function getLocations() {
 
   return data
 }
+
 export async function deletLocation(id) {
+  console.log(id)
   const { data ,error } = await supabase
     .from('locations')
     .delete()
@@ -23,6 +25,7 @@ export async function deletLocation(id) {
 
   return data
 }
+
 export async function createLocation(newLocation) {
 const { data, error } = await supabase
   .from('locations')

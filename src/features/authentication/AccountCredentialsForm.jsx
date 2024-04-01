@@ -2,27 +2,27 @@ import styled from 'styled-components/native'
 import { Keyboard, Text, View } from 'react-native'
 import useUser from './useUser'
 import { useDarkMode } from '../../contexts/DarkModeContext'
-import Icon from 'react-native-vector-icons/Ionicons'
 import ButtonIcon from '../../ui/ButtonIcon'
-import * as DocumentPicker from 'expo-document-picker'
 import { useEffect, useState } from 'react'
 import { useUpdateUser } from './useUpdateUser'
 import * as FileSystem from 'expo-file-system'
+import * as ImagePicker from 'expo-image-picker'
 import { Buffer } from 'buffer'
 import { Image } from 'expo-image'
 import { TextInput } from 'react-native-gesture-handler'
 import theme from '../../theme'
-import ButtonText from '../../ui/ButtonText'
 import Logout from './Logout'
+import { BottomSheetTextInput } from '@gorhom/bottom-sheet'
+import Spinner from '../../ui/Spinner'
+import useUserMatches from '../matches/useUserMatches'
 
-const StyledUserAvatar = styled(View)`
+const StyledAccountCredentialsForm = styled(View)`
   display: flex;
   align-items: center;
   flex-direction: row;
   gap: 10px;
   font-weight: bold;
   font-size: 18px;
-  /* color: red; */
 `
 
 const Avatar = styled(Image)`
@@ -31,6 +31,7 @@ const Avatar = styled(Image)`
   border-width: 3px;
   border-color: ${(props) => props.variant.accent};
 `
+
 const Credentials = styled(View)`
   width: 72%;
   gap: 5px;
@@ -45,13 +46,12 @@ const NameBox = styled(View)`
   background-color: ${(props) => props.variant.underlay};
   border-radius: ${theme.radiuses.sm};
 `
-const Input = styled(TextInput)`
+const Input = styled(BottomSheetTextInput)`
   padding: 5px 10px;
   color: ${(props) => props.variant.accent};
   font-size: 18px;
   font-weight: bold;
   width: 100%;
-
   border-color: ${(props) => props.variant.backgroundTrSolid};
   ${(props) =>
     props.middle && 'border-top-width: 1px;  border-bottom-width:1px; '}
@@ -69,13 +69,11 @@ const ErrorMessage = styled(Text)`
   top: 60%;
 `
 
-export default function UserAvatar() {
+export default function AccountCredentialsForm() {
   const { variant } = useDarkMode()
-  const { user } = useUser()
-  const { name, avatar } = user?.user_metadata
-  const [pickedImage, setPickedImage] = useState(null)
+  const { user, isFetching } = useUser()
   const { updateUser, isUpdating } = useUpdateUser()
-  const [tempName, setTempChange] = useState(name)
+  const [tempName, setTempChange] = useState(user?.user_metadata.name)
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [error, setError] = useState('')
@@ -86,9 +84,7 @@ export default function UserAvatar() {
 
   const updateAvatar = async () => {
     try {
-      const result = await DocumentPicker.getDocumentAsync({
-        type: 'image/*',
-      })
+      const result = await ImagePicker.launchImageLibraryAsync()
 
       if (!result.canceled) {
         const img = result.assets[0].uri
@@ -96,14 +92,9 @@ export default function UserAvatar() {
         const imageBase64 = await FileSystem.readAsStringAsync(img, {
           encoding: 'base64',
         })
-
         const imageBuffered = Buffer.from(imageBase64, 'base64')
-
-        setPickedImage(imageBuffered)
         updateUser({ avatar: imageBuffered })
-      } else {
-        setPickedImage(null)
-      }
+      } else return
     } catch (error) {
       console.error('Error picking image:', error)
     }
@@ -111,11 +102,11 @@ export default function UserAvatar() {
 
   const saveCredentials = () => {
     try {
-      if (!name && !password) return
+      if (!user?.user_metadata.name && !password) return
       if (password && password.length <= 3)
         throw new Error('Password must be at least 6 charachters!')
       if (password !== confirmPassword) throw new Error('Passwords must match!')
-      if (name !== tempName) {
+      if (user?.user_metadata.name !== tempName) {
         updateUser({ name: tempName })
         Keyboard.dismiss()
       }
@@ -130,25 +121,31 @@ export default function UserAvatar() {
     }
   }
 
+  if (!user) return <Spinner />
+
   return (
-    <StyledUserAvatar>
+    <StyledAccountCredentialsForm>
       <View>
         <Avatar
           variant={variant}
-          source={avatar ? avatar : require('../../../assets/default-user.jpg')}
+          source={
+            user.user_metadata.avatar
+              ? user?.user_metadata.avatar
+              : require('../../../assets/default-user.jpg')
+          }
           style={{ width: 90, height: 90 }}
-          alt={`Avatar of ${name}}`}
+          alt={`Avatar of ${user?.user_metadata?.name}}`}
         />
         <ButtonIcon
           iconName={'images'}
-          color={variant.textWhite}
+          color={variant.text}
           bgColor={variant.accent}
           size={18}
           style={'width: 30px; height: 30px; bottom: 0; right: 0;'}
           onPressFunction={updateAvatar}
           isLoading={isUpdating}
           underlay={variant.accentActive}
-          loaderColor={variant.textWhite}
+          loaderColor={variant.text}
           disabled={isUpdating}
         />
       </View>
@@ -167,7 +164,7 @@ export default function UserAvatar() {
             value={password}
             onChangeText={setPassword}
             secureTextEntry={true}
-            placeholder='Password'
+            placeholder='New password'
             placeholderTextColor={variant.textSecondary}
             middle={true}
           />
@@ -184,18 +181,18 @@ export default function UserAvatar() {
           <Logout />
           <ButtonIcon
             iconName='save'
-            color={variant.textWhite}
+            color={variant.text}
             bgColor={variant.accent}
             underlay={variant.accentActive}
             size={18}
             style={'width: 30px; height: 30px; bottom:4px; right: 4px;'}
             onPressFunction={saveCredentials}
             isLoading={isUpdating}
-            loaderColor={variant.textWhite}
+            loaderColor={variant.text}
             disabled={isUpdating}
           />
         </NameBox>
       </Credentials>
-    </StyledUserAvatar>
+    </StyledAccountCredentialsForm>
   )
 }

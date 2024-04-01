@@ -1,4 +1,4 @@
-import { TextInput, View } from 'react-native'
+import { View } from 'react-native'
 import styled from 'styled-components/native'
 import Link from './Link'
 import ButtonIcon from './ButtonIcon'
@@ -51,11 +51,10 @@ function isLink(str) {
   return urlPattern.test(str)
 }
 
-export default function Links() {
-  const { user } = useUser()
-  const { links: userLinks } = user?.user_metadata
+export default function LinkList() {
+  const { user, isFetching } = useUser()
   const { variant } = useDarkMode()
-  const [links, setLinks] = useState(userLinks)
+  const [links, setLinks] = useState(user.user_metadata.links)
   const [input, setInput] = useState('')
   const inputRef = useRef(null)
 
@@ -75,22 +74,23 @@ export default function Links() {
   return (
     <LinksBox>
       <LinksList>
-        {links?.map((link) => {
-          // const icon = socialMedias.includes(link.title.toLocaleLowerCase()) ? `logo-${link.title.toLocaleLowerCase()}` : 'earth-outline'
-          const matchingLink = socialMedias.find((media) =>
-            link.url.toLowerCase().includes(media)
-          )
-          const icon = matchingLink ? `logo-${matchingLink}` : 'earth-outline'
-          return (
-            <Link
-              key={link.id}
-              links={links}
-              link={link}
-              iconName={icon}
-              setLinks={setLinks}
-            />
-          )
-        })}
+        {links &&
+          links?.map((link) => {
+            // const icon = socialMedias.includes(link.title.toLocaleLowerCase()) ? `logo-${link.title.toLocaleLowerCase()}` : 'earth-outline'
+            const matchingLink = socialMedias.find((media) =>
+              link.url.toLowerCase().includes(media)
+            )
+            const icon = matchingLink ? `logo-${matchingLink}` : 'earth-outline'
+            return (
+              <Link
+                key={link.id}
+                links={links}
+                link={link}
+                iconName={icon}
+                setLinks={setLinks}
+              />
+            )
+          })}
       </LinksList>
       {links.length < 5 && (
         <InputBox>

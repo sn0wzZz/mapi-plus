@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form'
 
 import Input from '../../ui/Input'
 import ButtonText from '../../ui/ButtonText'
-import DismissKeyboard from '../../ui/DismissKeyboard'
+import DismissKeyboard from '../../ui/DismissKeyboardView'
 import useLogin from './useLogin'
 import theme from '../../theme'
 
@@ -63,6 +63,7 @@ export default function LoginForm() {
           onPressFunction={handleSubmit(onSubmit)}
           isLoading={isPending}
           disabled={isPending}
+          active={true}
         >
           Login
         </ButtonText>

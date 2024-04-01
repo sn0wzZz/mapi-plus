@@ -21,7 +21,7 @@ const TextBox = styled(View)`
   align-items: center;
   padding-horizontal: 12px;
   position: relative;
-  border: ${props=>props.border};
+  border: ${(props) => props.border};
 `
 
 const ErrorMessage = styled(Text)`
@@ -41,14 +41,14 @@ const Container = styled(View)`
 `
 
 const Eye = styled(TouchableOpacity)`
-  margin-left: auto; /* Push the Eye icon to the right */
-  margin-right: 4px; /* Margin from the right edge */
+  margin-left: auto;
+  margin-right: 4px;
 `
 
 export default function Input({
   name,
   control,
-  rules={},
+  rules = {},
   placeholder,
   iconName,
   iconColor,
@@ -88,7 +88,7 @@ export default function Input({
                 placeholder={placeholder}
                 placeholderTextColor={variant.textSecondary}
                 value={value}
-                autoComplete={type === 'password'? 'current-password': null}
+                autoComplete={type === 'password' ? 'current-password' : null}
                 autoCorrect={type === 'password' ? false : true}
                 secureTextEntry={type === 'password' && passwordVisibility}
                 onChangeText={onChange}

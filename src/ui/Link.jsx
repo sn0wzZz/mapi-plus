@@ -1,6 +1,6 @@
-import { TextInput, View } from 'react-native'
+import { View } from 'react-native'
 import Icon from 'react-native-vector-icons/Ionicons'
-// import Icon from 'react-native-vector-icons/FontAwesome5Brands'
+import IconFA from 'react-native-vector-icons/FontAwesome6'
 
 import ButtonIcon from './ButtonIcon'
 import styled from 'styled-components/native'
@@ -8,6 +8,7 @@ import { useDarkMode } from '../contexts/DarkModeContext'
 import theme from '../theme'
 import { useState } from 'react'
 import { useUpdateUser } from '../features/authentication/useUpdateUser'
+import { BottomSheetTextInput } from '@gorhom/bottom-sheet'
 
 const LinkBox = styled(View)`
   display: flex;
@@ -25,15 +26,15 @@ const Buttons = styled(View)`
   margin-left: auto;
 `
 
-const Url = styled(TextInput)`
-  color: ${(props) => props.variant.textWhite};
+const Url = styled(BottomSheetTextInput)`
+  color: ${(props) => props.variant.text};
   font-weight: bold;
   width: 100%;
 `
 
 export default function Link({ links, link, iconName, setLinks }) {
   const [value, setValue] = useState('')
-  const {updateUser} = useUpdateUser()
+  const { updateUser } = useUpdateUser()
   const { variant } = useDarkMode()
   const { id } = link
   const pressHandler = () => {
@@ -42,12 +43,29 @@ export default function Link({ links, link, iconName, setLinks }) {
   }
   return (
     <LinkBox variant={variant}>
-      <Icon
-        name={iconName}
-        size={22}
-        color={variant.accent}
-        style={{ borderRadius: 99, overflow: 'hidden', paddingHorizontal: 2.5 }}
-      />
+      {iconName === 'logo-twitter' ? (
+        <IconFA
+          name={'x-twitter'}
+          size={18}
+          color={variant.accent}
+          style={{
+            borderRadius: 99,
+            overflow: 'hidden',
+            paddingHorizontal: 2.5,
+          }}
+        />
+      ) : (
+        <Icon
+          name={iconName}
+          size={22}
+          color={variant.accent}
+          style={{
+            borderRadius: 99,
+            overflow: 'hidden',
+            paddingHorizontal: 2.5,
+          }}
+        />
+      )}
       <Url variant={variant} value={link.url} onChangeText={setValue}></Url>
       <Buttons>
         {/* <ButtonIcon
@@ -61,7 +79,7 @@ export default function Link({ links, link, iconName, setLinks }) {
           onPressFunction={pressHandler}
           iconName='close'
           size={22}
-          color={variant.textWhite}
+          color={variant.text}
           bgColor={variant.error}
           underlay={variant.errorActive}
           bgSize={30}

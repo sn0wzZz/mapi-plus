@@ -14,6 +14,7 @@ export default function useCreateLocation() {
           type: 'success',
           text1: 'New location created sucessfully!',
           text2: 'This location is now available.',
+          topOffset: 55,
         })
         queryClient.invalidateQueries({
           queryKey: ['locations'],

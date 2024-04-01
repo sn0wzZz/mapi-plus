@@ -1,8 +1,7 @@
-import { useEffect, useState } from 'react'
-import { Text, SafeAreaView } from 'react-native'
+import { memo, useEffect, useState } from 'react'
+import { SafeAreaView } from 'react-native'
 import { openDatabase } from 'expo-sqlite'
 import styled from 'styled-components/native'
-import theme from '../../theme'
 
 import { useDarkMode } from '../../contexts/DarkModeContext'
 import { useMapContext } from '../../contexts/MapContext'
@@ -10,15 +9,24 @@ import { useDbContext } from '../../contexts/DbContext'
 
 import List from '../../ui/List'
 import ButtonIcon from '../../ui/ButtonIcon'
-import { AlertTemplate } from '../../utils/helpers'
+import {
+  AlertTemplate,
+  deviceHeight,
+  filterData,
+  sortByDate,
+} from '../../utils/helpers'
 import CustomTabView from '../../ui/CustomTabView'
-import { SceneMap } from 'react-native-tab-view'
-import { getLocations } from '../../services/apiLocations'
 
-import { useQuery } from '@tanstack/react-query'
-import { useIsFocused } from '@react-navigation/native'
 import useDeleteLocation from './useDeleteLocation'
-import Logout from '../authentication/Logout'
+import useGetAllLocations from './useGetAllLocations'
+import ListOperations from './ListOperations'
+
+import { useUserContext } from '../../contexts/UserContext'
+import supabase from '../../services/supabase'
+import { useListContext } from '../../contexts/ListContext'
+import { Chat } from '../chat/Chat'
+import useUser from '../authentication/useUser'
+import { useRoute } from '@react-navigation/native'
 
 const ListContainer = styled(SafeAreaView)`
   flex: 1;
@@ -26,18 +34,8 @@ const ListContainer = styled(SafeAreaView)`
   background-color: ${(props) => props.variant.backgroundSolid};
   height: 10px;
   flex-grow: 1;
+  position: relative;
   justify-content: ${(props) => (props.align ? props.align : '')};
-`
-
-const Header = styled(Text)`
-  top: 40px;
-  background-color: ${theme.colors.accent};
-  color: black;
-  font-weight: bold;
-  border-radius: ${theme.radiuses.lg};
-  padding-horizontal: 10px;
-  margin: 30px;
-  font-size: 16px;
 `
 
 const locationRoutes = [
@@ -46,36 +44,85 @@ const locationRoutes = [
 ]
 
 export default function ListScreen({ navigation }) {
-  const [selectedLocations, setSelectedLocations] = useState([])
+  const { selectedLocations, setSelectedLocations } = useListContext()
   const { variant } = useDarkMode()
-  const { marker, data, setPin, isLoading } = useMapContext()
-  const {deleteOnlineLocations, isLoadingDel} = useDeleteLocation()
-
-  const { createTable, deleteData, fetchData, deleteDataById } = useDbContext()
-
-  const isFocused = useIsFocused()
-
-  let db = openDatabase('locationsDB.db')
-  
+  const { data, setPin, isLoading } = useMapContext()
+  const { deleteOnlineLocations, isLoadingDel } = useDeleteLocation()
   const {
-    error,
-    data: onlineData,
-    isLoading: isLoadingOnline,
-  } = useQuery({
-    queryKey: ['locations'],
-    queryFn: getLocations,
-    enabled: isFocused,
-  })
-  
+    filterValue,
+    sorted,
+    setUserMatchesVisible,
+    userMatchesList,
+    personalSort,
+  } = useUserContext()
+  const { createTable, deleteData, fetchData, deleteDataById } = useDbContext()
+  const { onlineData, isLoading: isLoadingOnline } = useGetAllLocations()
+  const [newOnlineData, setNewOnlineData] = useState([])
+  let db = openDatabase('locationsDB.db')
+  const {user} = useUser()
+
   useEffect(() => {
-    fetchData()
-  }, [marker])
+    setNewOnlineData(onlineData)
+  }, [onlineData])
+
+  useEffect(() => {
+    const subscription = supabase
+      .channel('locations_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'locations',
+        },
+        (payload) => {
+          const newData = payload.new
+          console.log('payload', newData)
+          setNewOnlineData((old) => [...old, newData])
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'DELETE',
+          schema: 'public',
+          table: 'locations',
+        },
+        (payload) => {
+          const newData = payload.old
+          console.log('payload', newData)
+          setNewOnlineData((oldLocations) => {
+            const index = oldLocations.findIndex((l) => {
+              console.log('l', l)
+              l.id === newData.id
+            })
+            if (index !== -1) {
+              const newLocations = [...oldLocations]
+              newLocations.splice(index, 1)
+              return newLocations
+            } else {
+              return oldLocations
+            }
+          })
+        }
+      )
+      .subscribe()
+
+    return () => subscription.unsubscribe()
+  }, [onlineData])
+
+  let filteredOnlineData = filterData(newOnlineData, filterValue, personalSort, user?.id )
+  let sortedOnlineData = sortByDate(filteredOnlineData, sorted)
+
+  let filteredData = filterData(data, filterValue)
+  let sortedData = sortByDate(filteredData, sorted)
 
   const deleteAllLocations = () => {
     deleteData()
     setPin(null)
     fetchData()
   }
+
   const emptyDb = () => {
     setPin(null)
     db.closeAsync()
@@ -85,7 +132,6 @@ export default function ListScreen({ navigation }) {
     fetchData()
   }
   const deleteLocationsById = async (ids) => {
-    // console.log(ids)
     setPin(null)
     deselectItems()
     ids.forEach((id) => {
@@ -102,7 +148,7 @@ export default function ListScreen({ navigation }) {
 
   const DeleteLocationsByIdAlert = (ids) =>
     AlertTemplate(
-      'Delete selected locations locations',
+      'Delete selected locations',
       `Are you sure you want to delete ${ids.length === 1 ? 'this' : 'these'} ${
         ids.length === 1 ? '' : ids.length
       } ${ids.length === 1 ? 'location' : 'locations'}?`,
@@ -116,37 +162,44 @@ export default function ListScreen({ navigation }) {
   }
 
   function deselectItems() {
-    // console.log('click')
     return setSelectedLocations([])
+  }
+
+  function displayUserMatches() {
+    setUserMatchesVisible(true)
+  }
+
+  const renderScene = ({ route }) => {
+    switch (route.key) {
+      case 'first':
+        return (
+          <List
+            data={sortedOnlineData}
+            actualData={onlineData}
+            height={deviceHeight > 800 ? '80%' : '79%'}
+            navigation={navigation}
+            isLoading={isLoadingOnline}
+          />
+        )
+      case 'second':
+        return (
+          <List
+            data={sortedData}
+            actualData={data}
+            height={deviceHeight > 800 ? '80%' : '79%'}
+            navigation={navigation}
+            isLoading={isLoading}
+          />
+        )
+      default:
+        return null
+    }
   }
 
   return (
     <ListContainer align={'center'} variant={variant}>
-      {/* <Header>Locations</Header> */}
-
       <CustomTabView
-        renderScene={SceneMap({
-          first: () => (
-            <List
-              data={onlineData}
-              height='86%'
-              selectedLocations={selectedLocations}
-              setSelectedLocations={setSelectedLocations}
-              navigation={navigation}
-              isLoading={isLoadingOnline}
-            />
-          ),
-          second: () => (
-            <List
-              data={data}
-              height='86%'
-              selectedLocations={selectedLocations}
-              setSelectedLocations={setSelectedLocations}
-              navigation={navigation}
-              isLoading={isLoading}
-            />
-          ),
-        })}
+        renderScene={renderScene}
         tabRoutes={locationRoutes}
         position='top'
         marginTop={60}
@@ -163,12 +216,22 @@ export default function ListScreen({ navigation }) {
         isLoading={isLoadingDel}
       />
 
+      <ButtonIcon
+        iconName={'people'}
+        onPressFunction={displayUserMatches}
+        top={'50px'}
+        left
+        color={variant.accent}
+        bubble={userMatchesList?.length || '0'}
+      />
+
+      <ListOperations />
       {selectedLocations[0] && (
         <ButtonIcon
           iconName={'close'}
           onPressFunction={() => deselectItems()}
-          bottom={'90px'}
-          color={variant.textWhite}
+          bottom={'145px'}
+          color={variant.text}
         />
       )}
     </ListContainer>

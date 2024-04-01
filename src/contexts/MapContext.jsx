@@ -14,6 +14,7 @@ const MapProvider = ({ children }) => {
   const [animatedRegion, setAnimatedRegion] = useState(initialRegion)
   const [currentRegion, setCurrentRegion] = useState(initialRegion)
   const [marker, setMarker] = useState(null)
+  const [calloutIsPressed, setCalloutIsPressed] = useState(false)
   const [pin, setPin] = useState(null)
   const [data, setData] = useState([])
   const [locationType, setLocationType] = useState('Location 📍')
@@ -41,7 +42,7 @@ const MapProvider = ({ children }) => {
   const [searchIsActive, setSearchIsActive] = useState(false)
   const [currentPosition, setCurrentPosition] = useState(null)
   const [heading, setHeading] = useState(0)
-  
+
   const [isDirectionsDetailsVisible, setIsDirectionsDetailsVisible] =
     useState(false)
 
@@ -55,7 +56,6 @@ const MapProvider = ({ children }) => {
     setIsDirectionsDetailsVisible(false)
     setPin(null)
   }
-
 
   const value = {
     animatedRegion,
@@ -118,7 +118,9 @@ const MapProvider = ({ children }) => {
     setHeading,
     isDirectionsDetailsVisible,
     setIsDirectionsDetailsVisible,
-    clearRoute
+    clearRoute,
+    calloutIsPressed,
+    setCalloutIsPressed,
   }
   return <MapContext.Provider value={value}>{children}</MapContext.Provider>
 }

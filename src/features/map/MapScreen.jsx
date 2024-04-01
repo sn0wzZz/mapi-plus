@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { memo, useEffect, useState } from 'react'
 import { View, Keyboard } from 'react-native'
 import styled from 'styled-components/native'
 import { deviceHeight, deviceWidth } from '../../utils/helpers'
@@ -26,11 +26,15 @@ import Search from '../../ui/Search'
 import ActionForm from './ActionForm'
 import useGeoCoding from '../../utils/useGeoCoding'
 import RouteDetails from '../../ui/RouteDetails'
-import { createLocation, getLocations } from '../../services/apiLocations'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import Toast from 'react-native-toast-message'
 import useCreateLocation from '../list/useCreateLocation'
-
+import useGetAllLocations from '../list/useGetAllLocations'
+import useUser from '../authentication/useUser'
+import useCreateAssociation from './useCreateAssociation'
+import useLocation from '../../utils/useLocation'
+import { Chat } from '../chat/Chat'
+import { useNavigation, useRoute } from '@react-navigation/native'
+import { useUserContext } from '../../contexts/UserContext'
+import Toast from 'react-native-toast-message'
 
 const MapContaioner = styled(View)`
   flex: 1;
@@ -43,11 +47,11 @@ const MapContaioner = styled(View)`
 const StyledMapView = styled(MapView.Animated)`
   position: absolute;
   width: ${deviceWidth + 150}px;
-  height: ${deviceHeight + 150}px;
+  height: ${deviceHeight + 165}px;
 `
 
 // eslint-disable-next-line no-unused-vars
-export default function MapScreen({ navigation }) {
+function MapScreen({ navigation }) {
   const {
     locationType,
     setLocationType,
@@ -94,6 +98,7 @@ export default function MapScreen({ navigation }) {
     setHeading,
     isDirectionsDetailsVisible,
     setIsDirectionsDetailsVisible,
+    setCalloutIsPressed,
   } = useMapContext()
 
   const {
@@ -115,8 +120,9 @@ export default function MapScreen({ navigation }) {
 
   const { getInfo, getDirections } = useGeoCoding()
   const { isDarkMode } = useDarkMode()
-  const { createOnlineLocation, isLoadingOnline } = useCreateLocation()
+  const { createOnlineLocation } = useCreateLocation()
 
+  // Init app
   useEffect(() => {
     // eslint-disable-next-line no-extra-semi
     ;(async () => {
@@ -127,6 +133,7 @@ export default function MapScreen({ navigation }) {
     fetchData()
   }, [])
 
+  // Open ActionForm
   useEffect(() => {
     if (isModalVisible) {
       setTimeout(() => {
@@ -135,10 +142,12 @@ export default function MapScreen({ navigation }) {
     }
   }, [isModalVisible, inputRef])
 
+  // ActionForm error
   useEffect(() => {
     if (locationName) setErrorInsert(null)
   }, [locationName])
 
+  // Search
   useEffect(() => {
     if (search) setSearchIsActive(true)
     else {
@@ -147,6 +156,7 @@ export default function MapScreen({ navigation }) {
     }
   }, [search, setSearchResult])
 
+  // Route and RouteDetails
   useEffect(() => {
     // eslint-disable-next-line no-extra-semi
     ;(async () => {
@@ -178,7 +188,63 @@ export default function MapScreen({ navigation }) {
     })()
   }, [destination])
 
-  const handleRegionChange = (newRegion) => {
+  ///////////////////////////////////////////////////////////////
+  /////////////////////////CONSTRUCTION//////////////////////////
+  ///////////////////////////////////////////////////////////////
+
+  const { user, isFetching } = useUser()
+  const { createAssociation } = useCreateAssociation()
+  const { onlineData, isLoading: isLoadingAll } = useGetAllLocations()
+  const location = useLocation()
+
+  // 1. Keep track of user's current location
+  // 2. If user's current location is near a saved location create an
+  // association with userId and locationId
+
+  const handleLocationChange = () => {
+    if (!isLoadingAll && location && user) {
+      const nearbyMarkers = onlineData.filter((marker) => {
+        const { latitude: markerLat, longitude: markerLng } = marker
+        const latDiff = Math.abs(location.latitude - markerLat)
+        const lngDiff = Math.abs(location.longitude - markerLng)
+
+        return latDiff < 0.001 && lngDiff < 0.001
+      })
+
+      if (nearbyMarkers.length > 0) {
+        nearbyMarkers.forEach((marker) => {
+          if (!marker.id || !user?.id) return
+          const locationID = marker?.id
+
+          const newAssociation = {
+            profile_id: user?.id,
+            location_id: locationID,
+          }
+
+          Toast.show({
+            type: 'confirm',
+            text1: `You're at ${marker.name}`,
+            text2: 'Click here to tag yourself!',
+            position: 'bottom',
+            onPress: () => createAssociation(newAssociation),
+          })
+        })
+      } else {
+        console.log('No nearby markers')
+      }
+    }
+  }
+
+  useEffect(() => {
+    handleLocationChange()
+  }, [location, onlineData])
+
+  ///////////////////////////////////////////////////////////////
+  ////////////////////////////END////////////////////////////////
+  ///////////////////////////////////////////////////////////////
+
+  // ArrowPoiner
+  const handleShowArrowPoiner = (newRegion) => {
     const markerIsInCurrentRegion =
       newRegion.latitude >
         pin?.locationPin.latitude - newRegion.latitudeDelta / 2.75 &&
@@ -192,10 +258,12 @@ export default function MapScreen({ navigation }) {
     setIsArrowVisible(!markerIsInCurrentRegion)
   }
 
+  // Open AcrionForm
   const handleOpenModal = () => {
     setModalVisible(true)
   }
 
+  // Close AcrionForm
   const handleCloseModal = () => {
     setErrorInsert(null)
     setCurrentLocation(null)
@@ -210,9 +278,10 @@ export default function MapScreen({ navigation }) {
     Keyboard.dismiss()
   }
 
+  // Save location
   const handleSaveLocation = async () => {
     if (!currentLocation && !search) return
-    const [latitude, longitude] = currentLocation || search.trim(' ').split(',')
+    const [latitude, longitude] = currentLocation
     if (locationName === '' || locationType === '')
       return setErrorInsert('No name provided!')
     setIsLoadingSave(true)
@@ -224,12 +293,14 @@ export default function MapScreen({ navigation }) {
       latitude,
       longitude,
       info,
+      publisher_id: user?.id,
     })
     fetchData()
     setLocationInfo(null)
     handleCloseModal()
   }
 
+  // Add marker
   const handleAddMarker = (e) => {
     setMarker(e.nativeEvent.coordinate)
     animateToSpecificLocation(e.nativeEvent.coordinate)
@@ -240,9 +311,11 @@ export default function MapScreen({ navigation }) {
     handleOpenModal(e)
   }
 
+  // Press marker
   const handleMarkerPress = (e) =>
     animateToSpecificLocation(e.nativeEvent.coordinate)
 
+  // Save parking
   const handleSaveParking = async () => {
     vibrate()
     setParked(true)
@@ -252,6 +325,7 @@ export default function MapScreen({ navigation }) {
     setParkingLocation(null)
   }
 
+  // Locate vehicle
   const locateParked = () => {
     fetchParkingData()
     if (!parkingLocation) return
@@ -259,9 +333,8 @@ export default function MapScreen({ navigation }) {
     animateToSpecificLocation(parkingLocation, 0.003)
   }
 
-  const goToPin = () => {
-    animateToSpecificLocation(pin.locationPin, 0.004)
-  }
+  // Go to pin
+  const goToPin = () => animateToSpecificLocation(pin.locationPin, 0.004)
 
   const mapPress = () => {
     if (isModalVisible) setModalVisible(false)
@@ -272,6 +345,7 @@ export default function MapScreen({ navigation }) {
     Keyboard.dismiss()
   }
 
+  // Get current location
   const handleGetLocation = () => {
     if (mapView.current) {
       mapView.current.getCamera().then((camera) => {
@@ -314,9 +388,11 @@ export default function MapScreen({ navigation }) {
         initialRegion={animatedRegion}
         onRegionChangeComplete={(region) => {
           setAnimatedRegion(region)
-          handleRegionChange(region)
+          handleShowArrowPoiner(region)
           handleGetLocation()
         }}
+        tracksViewChanges={false}
+        // liteMode={true}
         showsUserLocation={true}
         followsUserLocation={true}
         customMapStyle={isDarkMode ? DARK_MAP : LIGHT_MAP}
@@ -325,6 +401,7 @@ export default function MapScreen({ navigation }) {
         onPress={mapPress}
         onLongPress={handleAddMarker}
         rotateEnabled={true}
+        onCalloutPress={() => setCalloutIsPressed(true)}
       >
         <Polyline
           coordinates={routeDetails.directions}
@@ -351,7 +428,8 @@ export default function MapScreen({ navigation }) {
         {pin && (
           <Pin
             coordinate={pin.locationPin}
-            color={theme.colors.secondaryAccent}
+            locationId={pin.id}
+            color={theme.colors.accentSecondary}
             name={pin.name}
             iconName={'location'}
             iconSize={45}
@@ -367,7 +445,7 @@ export default function MapScreen({ navigation }) {
             iconSize={30}
           />
         )}
-        
+
         {searchPinLocation && (
           <Pin
             coordinate={searchPinLocation}
@@ -393,7 +471,7 @@ export default function MapScreen({ navigation }) {
           handleSaveLocation={handleSaveLocation}
           handleCloseModal={handleCloseModal}
           errorInsert={errorInsert}
-          isLoadingSave={isLoadingSave || isLoadingOnline}
+          isLoadingSave={isLoadingSave || isLoadingAll}
           setIsLoadingSave={setIsLoadingSave}
         />
       )}
@@ -422,8 +500,10 @@ export default function MapScreen({ navigation }) {
         onLongPressFunction={handleSaveParking}
         bgColor={parked ? theme.colors.accent : null}
         bottom={'230px'}
-        color={parked ? theme.colors.textWhite : theme.colors.accent}
+        color={parked ? theme.colors.text : theme.colors.accent}
       />
     </MapContaioner>
   )
 }
+
+export default memo(MapScreen)

@@ -15,7 +15,7 @@ import SignupForm from './SignupForm'
 import theme from '../../theme'
 import useKeyboardVisibility from '../../utils/useKeyboardVisibility'
 import { useState } from 'react'
-import DismissKeyboard from '../../ui/DismissKeyboard'
+import DismissKeyboard from '../../ui/DismissKeyboardView'
 import CustomTabView from '../../ui/CustomTabView'
 
 const StyledImageBG = styled(ImageBackground)`

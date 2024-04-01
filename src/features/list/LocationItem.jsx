@@ -10,6 +10,9 @@ import useMapOperations from '../../utils/useMapOperations'
 
 import Icon from 'react-native-vector-icons/Ionicons'
 import useGeoCoding from '../../utils/useGeoCoding'
+import { useListContext } from '../../contexts/ListContext'
+import Toast from 'react-native-toast-message'
+import useUser from '../authentication/useUser'
 
 const Row = styled(View)`
   flex: 1;
@@ -39,7 +42,7 @@ const Title = styled(Text)`
 const Type = styled(Text)`
   color: black;
   font-weight: bold;
-  background-color: ${theme.colors.accent};
+  background-color: ${(props) => props.variant.accent};
   margin-left: auto;
   padding: 2.5px 10px;
   border-radius: ${theme.radiuses.full};
@@ -68,30 +71,36 @@ const Span = styled(Text)`
 
 export default function LocationItem({
   item,
-  selectedLocations,
-  setSelectedLocations,
   setShowOnMapClicked,
   navigation,
   itemBg,
 }) {
   const { variant } = useDarkMode()
-  const {
-    setPin,
-    vibrate,
-    search,
-    setSearch,
-    setInputIsFocused,
-    setDestination,
-  } = useMapContext()
+  const { setPin, search, setSearch, setInputIsFocused, setDestination } =
+    useMapContext()
   const { name: routeName } = useRoute()
   const { animateToSpecificLocation } = useMapOperations()
   const { getCoords } = useGeoCoding()
+  const { user } = useUser()
 
-  // console.log(item)
+  const { selectLocations, selectedLocations } = useListContext()
 
-  const pressHandler = async (id, name, latitude, longitude) => {
+  const isPublishedByUser = item.publisher_id === user?.id
+
+  const checkSelection = (id) => {
+    if (isPublishedByUser || !item.publisher_id) return selectLocations(id)
+    else
+      Toast.show({
+        type: 'error',
+        text1: "You can't select this location!",
+        text2: 'You can only select and delete locations added by you!',
+        topOffset: 55,
+      })
+  }
+
+  const locationPress = async (id, name, latitude, longitude) => {
     if (selectedLocations?.length) {
-      return selectLocations(id)
+      return checkSelection(id)
     }
     if (!longitude || !latitude) {
       const coords = await getCoords(name)
@@ -111,7 +120,7 @@ export default function LocationItem({
     latitude = parseFloat(latitude)
     longitude = parseFloat(longitude)
     let locationPin = { latitude, longitude }
-    setPin({ locationPin, name })
+    setPin({ locationPin, name, id })
     setDestination({ latitude: latitude, longitude: longitude })
     if (setInputIsFocused) setInputIsFocused(false)
     if (setShowOnMapClicked) setShowOnMapClicked(true)
@@ -123,26 +132,15 @@ export default function LocationItem({
     }
   }
 
-  const selectLocations = (id) => {
-    vibrate()
-    if (selectedLocations.includes(id)) {
-      const newListItem = selectedLocations.filter(
-        (locationId) => locationId !== id
-      )
-      return setSelectedLocations(newListItem)
-    }
-    setSelectedLocations([...selectedLocations, id])
-  }
-
   const selected = (id) => selectedLocations && selectedLocations.includes(id)
 
   return (
     <Item
       style={{ zIndex: 99 }}
       onPress={() =>
-        pressHandler(item.id, item.name, item.latitude, item.longitude)
+        locationPress(item.id, item.name, item.latitude, item.longitude)
       }
-      onLongPress={() => selectedLocations && selectLocations(item.id)}
+      onLongPress={() => checkSelection(item.id)}
       variant={variant}
       itemBg={itemBg}
       underlayColor={variant.underlay}
@@ -153,10 +151,12 @@ export default function LocationItem({
             <ItemHeader>
               <Title>
                 {item.name}{' '}
-                {item.type==='location'&&<Icon name={'locate'} size={15} color={theme.colors.accent} />}{' '}
+                {item.type === 'location' && (
+                  <Icon name={'locate'} size={15} color={variant.accent} />
+                )}{' '}
               </Title>
               {item.type && (
-                <Type>
+                <Type variant={variant}>
                   {item.type.charAt(0).toUpperCase() + item.type.slice(1)}
                 </Type>
               )}
@@ -171,7 +171,7 @@ export default function LocationItem({
               {item.info && (
                 <Text
                   style={{
-                    color: variant.textWhite,
+                    color: variant.text,
                     flex: 1,
                     alignItems: 'center',
                   }}
@@ -190,7 +190,7 @@ export default function LocationItem({
               name={item.type ? 'location' : 'search'}
               size={25}
               color={
-                item.type ? theme.colors.secondaryAccent : theme.colors.accent
+                item.type ? theme.colors.accentSecondary : theme.colors.accent
               }
             />
           </Row>

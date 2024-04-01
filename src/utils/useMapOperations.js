@@ -53,7 +53,6 @@ export default function useMapOperations() {
       }
       mapView.current.animateToRegion(newRegion, 500)
       setAnimatedRegion(newRegion)
-      
     }
   }
 

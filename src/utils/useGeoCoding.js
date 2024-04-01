@@ -102,7 +102,7 @@ export default function useGeoCoding() {
       console.error('Error:', error)
     }
   }
-  
+
   const getDirections = async (origin, destination) => {
     if (!origin || !destination) return
     const { latitude: latSt, longitude: lngSt } = origin
@@ -138,7 +138,6 @@ export default function useGeoCoding() {
     }
   }
 
-  
   return {
     getInfo,
     getCoords,
