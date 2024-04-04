@@ -1,3 +1,4 @@
 # mapi-plus
 Final project
-<img src="https://imgur.com/a/gymQsmz" title="source: imgur.com">
+![image](https://github.com/sn0wzZz/mapi-plus/assets/72272349/7786fdee-6c4f-4fdc-b4da-8581fe5e7508)
+
